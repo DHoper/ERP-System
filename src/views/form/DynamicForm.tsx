@@ -21,7 +21,7 @@ import PhoneInput from './fieldElements/PhoneInput'
 import DatePicker from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm } from 'react-hook-form'
+import { Controller, useForm } from 'react-hook-form'
 import { ObjectSchema } from 'yup'
 import { UserDataType } from 'src/types/UserType'
 
@@ -42,7 +42,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
       resolver: yupResolver(vaildationSchema),
       defaultValues: formData || null
     } //! react-form-hook 提供動態異步 defaultValues 設置 !
-    const { register, handleSubmit, reset, trigger, formState } = useForm(formOptions)
+    const { register, handleSubmit, reset, trigger, control, formState } = useForm(formOptions)
     const { errors } = formState
 
     useImperativeHandle(ref, () => ({
@@ -59,22 +59,22 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
     }
     const formElements: React.ReactNode[] = []
 
-    fields.map((field: DynamicFormType, index: number) => {
+    fields.map((fieldFactor: DynamicFormType, index: number) => {
       let element: React.ReactNode
 
-      switch (field.fieldType) {
+      switch (fieldFactor.fieldType) {
         case 'text':
         case 'password':
           element = (
             <TextField
-              {...register(field.name)}
-              onBlur={() => trigger(field.name)}
-              label={field.label}
-              type={field.fieldType}
+              {...register(fieldFactor.name)}
+              onBlur={() => trigger(fieldFactor.name)}
+              label={fieldFactor.label}
+              type={fieldFactor.fieldType}
               variant='outlined'
-              sx={{ ...field.sx }}
-              minRows={field.minRows}
-              multiline={!!field.minRows}
+              sx={{ ...fieldFactor.sx }}
+              minRows={fieldFactor.minRows}
+              multiline={!!fieldFactor.minRows}
               disabled={disabled}
               fullWidth
             />
@@ -84,22 +84,22 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         /*   case 'phone':
         element = (
           <PhoneInput
-            value={formData[field.name]}
+            value={formData[fieldFactor.name]}
             disabled={disabled}
           />
         )
         break */
         case 'date':
           const CustomInput = forwardRef((props, ref) => {
-            return <TextField inputRef={ref} label={field.label} fullWidth {...props} />
+            return <TextField inputRef={ref} label={fieldFactor.label} fullWidth {...props} />
           })
 
           element = (
             <DatePickerWrapper>
               <DatePicker
-                {...register(field.name)}
-                onBlur={() => trigger(field.name)}
-                selected={new Date(formData[field.name])}
+                {...register(fieldFactor.name)}
+                onBlur={() => trigger(fieldFactor.name)}
+                selected={new Date(formData[fieldFactor.name])}
                 showYearDropdown
                 showMonthDropdown
                 id='account-settings-date'
@@ -107,7 +107,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
                 customInput={<CustomInput />}
                 disabled={disabled}
                 onChange={date => {
-                  handleFieldChange(field.name, date)
+                  handleFieldChange(fieldFactor.name, date)
                 }}
               />
             </DatePickerWrapper>
@@ -117,37 +117,42 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         case 'select':
           element = (
             <FormControl fullWidth variant='outlined'>
-              <InputLabel>{field.label}</InputLabel>
-              <Select
-                {...register(field.name)}
-                onBlur={() => trigger(field.name)}
-                label={field.label}
-                disabled={disabled}
-                defaultValue={formOptions.defaultValues ? formOptions.defaultValues[field.name] : 1}
-                fullWidth
-              >
-                {field.options?.map((option, optionIndex) => (
-                  <MenuItem key={optionIndex} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
+              <InputLabel>{fieldFactor.label}</InputLabel>
+              <Controller
+                name={fieldFactor.name}
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    {...field}
+                    onBlur={() => trigger(fieldFactor.name)}
+                    label={fieldFactor.label}
+                    disabled={disabled}
+                    fullWidth
+                  >
+                    {fieldFactor.options?.map((option, optionIndex) => (
+                      <MenuItem key={optionIndex} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
             </FormControl>
           )
           break
         case 'multipleSelect':
           element = (
             <FormControl fullWidth variant='outlined'>
-              <InputLabel>{field.label}</InputLabel>
+              <InputLabel>{fieldFactor.label}</InputLabel>
               <Select
-                {...register(field.name)}
-                onBlur={() => trigger(field.name)}
-                label={field.label}
+                {...register(fieldFactor.name)}
+                onBlur={() => trigger(fieldFactor.name)}
+                label={fieldFactor.label}
                 fullWidth
                 disabled={disabled}
                 multiple
               >
-                {field.options?.map((option, optionIndex) => (
+                {fieldFactor.options?.map((option, optionIndex) => (
                   <MenuItem key={optionIndex} value={option.value}>
                     {option.label}
                   </MenuItem>
@@ -160,12 +165,17 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         case 'radioGroup':
           element = (
             <FormControl>
-              <FormLabel>{field.label}</FormLabel>
-              <RadioGroup row name={field.name} sx={{ ...field.sx }} value={formData[field.name] || 1}>
-                {field.options?.map((option, optionIndex) => (
+              <FormLabel>{fieldFactor.label}</FormLabel>
+              <RadioGroup
+                row
+                name={fieldFactor.name}
+                sx={{ ...fieldFactor.sx }}
+                value={formData[fieldFactor.name] || 1}
+              >
+                {fieldFactor.options?.map((option, optionIndex) => (
                   <FormControlLabel
-                    {...register(field.name)}
-                    onBlur={() => trigger(field.name)}
+                    {...register(fieldFactor.name)}
+                    onBlur={() => trigger(fieldFactor.name)}
                     key={optionIndex}
                     label={option.label}
                     disabled={disabled}
@@ -181,10 +191,10 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         case 'checkbox':
           element = (
             <FormControlLabel
-              {...register(field.name)}
-              onBlur={() => trigger(field.name)}
-              control={<Checkbox checked={formData[field.name] || false} disabled={disabled} />}
-              label={field.label}
+              {...register(fieldFactor.name)}
+              onBlur={() => trigger(fieldFactor.name)}
+              control={<Checkbox checked={formData[fieldFactor.name] || false} disabled={disabled} />}
+              label={fieldFactor.label}
             />
           )
           break
@@ -192,13 +202,13 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         case 'switch':
           element = (
             <FormControlLabel
-              {...register(field.name)}
-              onBlur={() => trigger(field.name)}
+              {...register(fieldFactor.name)}
+              onBlur={() => trigger(fieldFactor.name)}
               sx={{ marginLeft: '' }}
               control={<Switch sx={{ m: 1 }} defaultChecked />}
-              label={field.label}
+              label={fieldFactor.label}
               labelPlacement='start'
-              value={formData[field.name]}
+              value={formData[fieldFactor.name]}
               disabled={disabled}
             />
           )
@@ -210,7 +220,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
 
       if (element) {
         formElements.push(
-          <Grid item xl={field.fullWidth ? 12 : 6} xs={12} key={index}>
+          <Grid item xl={fieldFactor.fullWidth ? 12 : 6} xs={12} key={index}>
             <div
               style={{
                 position: 'relative'
@@ -229,7 +239,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
                   right: 0
                 }}
               >
-                {errors[field.name]?.message}
+                {errors[fieldFactor.name]?.message}
               </div>
               {element}
             </div>
