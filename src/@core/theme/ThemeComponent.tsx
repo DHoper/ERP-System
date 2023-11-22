@@ -1,5 +1,5 @@
 // ** React Imports
-import { ReactNode } from 'react'
+import { ReactNode, useContext, useEffect } from 'react'
 
 // ** MUI Imports
 import CssBaseline from '@mui/material/CssBaseline'
@@ -10,7 +10,7 @@ import { ThemeProvider, createTheme, responsiveFontSizes } from '@mui/material/s
 import { Settings } from 'src/@core/context/settingsContext'
 
 // ** Theme Config
-import themeConfig from 'src/configs/themeConfig'
+import themeConfig from 'src/@core/configs/themeConfig'
 
 // ** Theme Override Imports
 import overrides from './overrides'
@@ -21,6 +21,9 @@ import themeOptions from './ThemeOptions'
 
 // ** Global Styles
 import GlobalStyling from './globalStyles'
+import { useRouter } from 'next/router'
+import AuthContext, { AuthContextType } from 'src/context/user/user'
+import { getWithExpiry } from 'src/utils/utils'
 
 interface Props {
   settings: Settings
@@ -47,6 +50,27 @@ const ThemeComponent = (props: Props) => {
   if (themeConfig.responsiveFontSizes) {
     theme = responsiveFontSizes(theme)
   }
+
+  const router = useRouter()
+  const isLoginPage = router.pathname === '/auth/login'
+  const isRegisterPage = router.pathname === '/auth/register'
+
+  const authContext = useContext<AuthContextType>(AuthContext)
+  const { userId } = authContext
+
+  const token = getWithExpiry('token')
+
+  // useEffect(() => {
+  //   if ((!userId || !token) && !isLoginPage && !isRegisterPage) {
+  //     router.push('/auth/login')
+  //   }
+  // }, [userId, token, isLoginPage, isRegisterPage, router])
+
+  // useEffect(() => {
+  //   if (isLoginPage && userId && token) {
+  //     router.push('/')
+  //   }
+  // }, [isLoginPage, router, token, userId])
 
   return (
     <ThemeProvider theme={theme}>

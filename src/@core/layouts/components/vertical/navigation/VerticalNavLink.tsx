@@ -15,7 +15,7 @@ import ListItemIcon from '@mui/material/ListItemIcon'
 import ListItemButton, { ListItemButtonProps } from '@mui/material/ListItemButton'
 
 // ** Configs Import
-import themeConfig from 'src/configs/themeConfig'
+import themeConfig from 'src/@core/configs/themeConfig'
 
 // ** Types
 import { NavLink } from 'src/@core/layouts/types'

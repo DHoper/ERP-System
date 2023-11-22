@@ -1,6 +1,6 @@
 // ** Next Imports
 import Head from 'next/head'
-import { Router } from 'next/router'
+import { Router, useRouter } from 'next/router'
 import type { NextPage } from 'next'
 import type { AppProps } from 'next/app'
 
@@ -12,7 +12,7 @@ import { CacheProvider } from '@emotion/react'
 import type { EmotionCache } from '@emotion/cache'
 
 // ** Config Imports
-import themeConfig from 'src/configs/themeConfig'
+import themeConfig from 'src/@core/configs/themeConfig'
 
 // ** Component Imports
 import UserLayout from 'src/layouts/UserLayout'
@@ -29,6 +29,9 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 
 // ** Global css styles
 import '../../styles/globals.css'
+import AuthContext, { AuthContextType, AuthProvider } from 'src/context/user/user'
+import { useContext, useEffect } from 'react'
+import { getWithExpiry } from 'src/utils/utils'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
@@ -58,6 +61,7 @@ const App = (props: ExtendedAppProps) => {
   // Variables
   const getLayout = Component.getLayout ?? (page => <UserLayout>{page}</UserLayout>)
 
+
   return (
     <CacheProvider value={emotionCache}>
       <Head>
@@ -71,11 +75,13 @@ const App = (props: ExtendedAppProps) => {
       </Head>
 
       <SettingsProvider>
-        <SettingsConsumer>
-          {({ settings }) => {
-            return <ThemeComponent settings={settings}>{getLayout(<Component {...pageProps} />)}</ThemeComponent>
-          }}
-        </SettingsConsumer>
+        <AuthProvider>
+          <SettingsConsumer>
+            {({ settings }) => {
+              return <ThemeComponent settings={settings}>{getLayout(<Component {...pageProps} />)}</ThemeComponent>
+            }}
+          </SettingsConsumer>
+        </AuthProvider>
       </SettingsProvider>
     </CacheProvider>
   )
