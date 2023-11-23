@@ -1,6 +1,6 @@
-import React, { useEffect, useRef, useState } from 'react'
-import { styled, keyframes, width } from '@mui/system'
-import { Box, Button, Checkbox, Container, Stack } from '@mui/material'
+import React, {  useState } from 'react'
+import { styled, keyframes } from '@mui/system'
+import { Box, Button, Stack } from '@mui/material'
 
 // Keyframes
 
@@ -47,7 +47,7 @@ const Frame = styled('div')({
   position: 'relative',
   width: '12.5rem',
   height: '12.5rem',
-  marginBottom: '6rem',
+  marginBottom: '4rem',
   borderRadius: '2px',
   overflow: 'hidden',
   color: '#333',
@@ -139,6 +139,7 @@ const MailAirplane = () => {
     height: '7rem',
     marginTop: '1.2rem',
     strokeDashoffset: 320,
+    opacity: !!resendCounter ? 0 : 1,
 
     animation: isSend ? `${flyAnimation} 1.6s ease-in-out 0.7s both, steps(1000)` : 'none'
   })
@@ -190,16 +191,29 @@ const MailAirplane = () => {
             <polyline points='119,1 1,59 106,80 119,1'></polyline>
             <polyline points='119,1 40,67 43,105 69,73'></polyline>
           </PlaneIcon>
-          <FinshHint>認證信已寄出!</FinshHint>
+          <FinshHint>
+            <p>認證信已寄出</p>
+            <p>請前往完成認證</p>
+          </FinshHint>
         </Frame>
-        <StyledButton
-          className='button'
-          onClick={handleClick}
-          disabled={!!resendCounter}
-          sx={{ border: !!resendCounter ? '#9e9e9e 2px solid' : '#1abc9c 2px solid' }}
-        >
-          {!resendCounter ? '發送認證信' : '重新發送' + resendCounterHint}
-        </StyledButton>
+        <Stack spacing={4} sx={{ width: '100%' }} alignItems={'center'}>
+          <StyledButton
+            className='button'
+            onClick={handleClick}
+            disabled={!!resendCounter}
+            sx={{ border: !!resendCounter ? '#9e9e9e 2px solid' : '#1abc9c 2px solid' }}
+          >
+            {!resendCounter ? '發送認證信' : '重新發送' + resendCounterHint}
+          </StyledButton>
+          <StyledButton
+            className='button'
+            onClick={handleClick}
+            disabled={!resendCounter}
+            sx={{ border: !resendCounter ? '#9e9e9e 2px solid' : '#1abc9c 2px solid' }}
+          >
+            下一步
+          </StyledButton>
+        </Stack>
       </Box>
     </>
   )

@@ -9,59 +9,55 @@ import AvatarImage from 'src/views/form/fieldElements/AvatarImage'
 import { DynamicFormType } from 'src/types/ComponentsTypes'
 import { UserAccountDataType, UserAccountVaildationSchema, UserDataType } from 'src/types/UserType'
 
-function createDynamicFormField(userData: UserDataType): DynamicFormType[] {
-  const dynamicFormFields: DynamicFormType[] = [
-    {
-      name: 'username',
-      fieldType: 'text',
-      label: '暱稱',
-      fullWidth: false,
-    },
-    {
-      name: 'name',
-      fieldType: 'text',
-      label: '姓名',
-      fullWidth: false,
-    },
-    {
-      name: 'email',
-      fieldType: 'text',
-      label: '信箱',
-      fullWidth: false,
-    },
-    {
-      name: 'department',
-      fieldType: 'select',
-      label: '所屬部門',
-      fullWidth: false,
-      options: [
-        { value: 1, label: '資訊部' },
-        { value: 2, label: '管理部' },
-        { value: 3, label: '人事部' },
-        { value: 4, label: '工程部' },
-        { value: 5, label: '外勤部' }
-      ],
-    },
-    {
-      name: 'isActive',
-      label: '狀態',
-      fieldType: 'select',
-      fullWidth: false,
-      options: [
-        { value: true, label: '活躍' },
-        { value: false, label: '停用' }
-      ],
-    },
-    {
-      name: 'jobTitle',
-      fieldType: 'text',
-      label: '職稱',
-      fullWidth: false,
-    }
-  ]
-
-  return dynamicFormFields
-}
+const dynamicFormFields: DynamicFormType[] = [
+  {
+    name: 'username',
+    fieldType: 'text',
+    label: '暱稱',
+    fullWidth: false
+  },
+  {
+    name: 'name',
+    fieldType: 'text',
+    label: '姓名',
+    fullWidth: false
+  },
+  {
+    name: 'email',
+    fieldType: 'text',
+    label: '信箱',
+    fullWidth: false
+  },
+  {
+    name: 'department',
+    fieldType: 'select',
+    label: '所屬部門',
+    fullWidth: false,
+    options: [
+      { value: 1, label: '資訊部' },
+      { value: 2, label: '管理部' },
+      { value: 3, label: '人事部' },
+      { value: 4, label: '工程部' },
+      { value: 5, label: '外勤部' }
+    ]
+  },
+  {
+    name: 'isActive',
+    label: '狀態',
+    fieldType: 'select',
+    fullWidth: false,
+    options: [
+      { value: true, label: '活躍' },
+      { value: false, label: '停用' }
+    ]
+  },
+  {
+    name: 'jobTitle',
+    fieldType: 'text',
+    label: '職稱',
+    fullWidth: false
+  }
+]
 
 const TabAccount = ({ userData, disabled }: { userData: UserDataType; disabled: boolean }) => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
@@ -80,17 +76,17 @@ const TabAccount = ({ userData, disabled }: { userData: UserDataType; disabled: 
     dynamicFormRef.current.resetForm()
   }
 
+  const handleSubmit = async (formData: UserAccountDataType) => {
+    console.log(formData, 77)
+  }
+
   const handleChange = (fieldName: string, value: any) => {
     const formDataCarrier = { ...formData, [fieldName]: value }
     setFormData(formDataCarrier)
   }
 
-  const handleSubmit = async (formData: UserAccountDataType) => {
-    console.log(formData, 77)
-  }
-
   useEffect(() => {
-    setFormField(createDynamicFormField(userData))
+    setFormField(dynamicFormFields)
     const { username, name, email, department, isActive, jobTitle } = userData
     setFormData({ username, name, email, department, isActive, jobTitle })
   }, [userData])

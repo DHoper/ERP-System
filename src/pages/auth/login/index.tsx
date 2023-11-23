@@ -43,12 +43,12 @@ const loginValidationSchema = Yup.object().shape({
   username: Yup.string()
     .required('請輸入使用者名稱')
     .test('帳號驗證', '請輸入正確的帳號', value => {
-      return value === 'kevin.fjbc'
+      return !!value
     }),
   password: Yup.string()
     .required('請輸入使用者密碼')
     .test('密碼驗證', '請輸入正確的密碼', value => {
-      return value === 'kevin0704'
+      return !!value
     })
 })
 const formOptions = { resolver: yupResolver(loginValidationSchema) }
@@ -104,8 +104,6 @@ const LoginPage = () => {
 
   const handleLogin = async (formData: LoginFormType) => {
     setLoading(true)
-
-    console.log(formData)
 
     try {
       login(formData.username, formData.password, remember)

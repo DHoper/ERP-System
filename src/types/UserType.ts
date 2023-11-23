@@ -16,7 +16,7 @@ export interface UserDataType {
   intro: string
   country: string
   languages: number[]
-  isActive: number
+  isActive: boolean
 }
 
 export interface UserAccountDataType {
@@ -26,7 +26,19 @@ export interface UserAccountDataType {
   name: string
   email: string
   jobTitle: string
-  isActive: number
+  isActive: boolean
+}
+
+export interface UserInfoDataType {
+  _id?: string
+  phone: string
+  address: string
+  jobTitle: string
+  gender: number
+  birthDate: string
+  intro: string
+  country: string
+  languages: number[]
 }
 
 export const UserVaildationSchema = Yup.object().shape({
@@ -46,6 +58,16 @@ export const UserVaildationSchema = Yup.object().shape({
   country: Yup.string().required('請提供國家'),
   languages: Yup.array().of(Yup.number()).required('請提供語言'),
   isActive: Yup.boolean().required('請指定用戶是否啟用')
+})
+
+export const UserInfoVaildationSchema = Yup.object().shape({
+  intro: Yup.string().required('請提供自我介紹'),
+  birthDate: Yup.string().required('請提供生日'),
+  phone: Yup.string().required('請提供電話號碼'),
+  address: Yup.string().required('請提供地址'),
+  country: Yup.string().required('請提供國家'),
+  languages: Yup.array().of(Yup.number()).required('請提供語言'),
+  gender: Yup.number().required('請提供性別')
 })
 
 export const UserAccountVaildationSchema = Yup.object().shape({

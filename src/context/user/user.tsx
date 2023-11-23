@@ -3,51 +3,27 @@ import axios from 'axios'
 import MatxLoading from 'src/@core/components/MatxLoading'
 import { WEB_API_URL } from 'src/utils/constant'
 import { setWithExpiry } from 'src/utils/utils'
+import { UserDataType } from 'src/types/UserType'
 
 interface StateType {
-  userId: string | null
+  accountId?: string | null
+  accountData?: UserDataType | null
   isInitialised?: boolean
   isAuthenticated?: boolean
 }
 
-const userId = typeof window !== 'undefined' ? localStorage.getItem('userId') || null : null
+const accountId = typeof window !== 'undefined' ? localStorage.getItem('accountId') || null : null
 
 const initialState: StateType = {
-  userId: userId || null,
+  accountId: accountId || null,
+  accountData: null,
   isInitialised: true,
   isAuthenticated: false
 }
 
-// const isValidToken = (accessToken) => {
-//   if (!accessToken) return false;
-
-//   const decodedToken = jwtDecode(accessToken);
-//   const currentTime = Date.now() / 1000;
-//   return decodedToken.exp > currentTime;
-// };
-
-// const setSession = (accessToken) => {
-//   if (accessToken) {
-//     localStorage.setItem('accessToken', accessToken);
-//     axios.defaults.headers.common.Authorization = `Bearer ${accessToken}`;
-//   } else {
-//     localStorage.removeItem('accessToken');
-//     delete axios.defaults.headers.common.Authorization;
-//   }
-// };
-
-export type AuthContextType = {
-  userId: string | null
-  isInitialised?: boolean
-  isAuthenticated?: boolean
-  method: string
-  login: (userId: string, password: string, remember: boolean) => Promise<void>
-  logout: () => void
-  register: (email: string, userId: string, password: string) => Promise<void>
-}
-
 enum Action {
   LOGIN = 'LOGIN',
+  TOKENLOGIN = 'TOKENLOGIN',
   LOGOUT = 'LOGOUT',
   INIT = 'INIT',
   REGISTER = 'REGISTER'
@@ -62,27 +38,31 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
   switch (action.type) {
     case Action.INIT: {
       if (!action.payload) return state
-      const { isAuthenticated, userId } = action.payload
+      const { isAuthenticated, accountId, accountData } = action.payload
 
-      return { ...state, isAuthenticated, isInitialised: true, userId }
+      return { ...state, isAuthenticated, isInitialised: true, accountId, accountData }
     }
 
     case Action.LOGOUT: {
-      return { ...state, isAuthenticated: false, userId: null }
+      return { ...state, isAuthenticated: false, accountId: null }
+    }
+
+    case Action.TOKENLOGIN: {
+      if (!action.payload) return state
+      const { accountData } = action.payload
+
+      return { ...state, accountData }
     }
 
     case Action.LOGIN: {
       if (!action.payload) return state
-      const { userId } = action.payload
+      const { accountId } = action.payload
 
-      return { ...state, isAuthenticated: true, userId }
+      return { ...state, isAuthenticated: true, accountId }
     }
 
     case Action.REGISTER: {
-      if (!action.payload) return state
-      const { userId } = action.payload
-
-      return { ...state, isAuthenticated: true, userId }
+      return { ...state, isAuthenticated: true }
     }
 
     default:
@@ -90,12 +70,28 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
   }
 }
 
+export type AuthContextType = {
+  accountId: string | null
+  accountData: UserDataType | null
+  isInitialised?: boolean
+  isAuthenticated?: boolean
+  method: string
+  login: (accountId: string, password: string, remember: boolean) => Promise<void>
+  tokenLogin: (accountId: string, token: string) => Promise<void>
+  logout: () => void
+  register: (formData: object) => Promise<void>
+}
+
 const AuthContext = createContext<AuthContextType>({
-  userId: null,
+  accountId: null,
+  accountData: null,
   isInitialised: false,
   isAuthenticated: false,
   method: 'JWT',
   login: function (): Promise<void> {
+    throw new Error('Function not implemented.')
+  },
+  tokenLogin: function (): Promise<void> {
     throw new Error('Function not implemented.')
   },
   logout: function (): void {
@@ -118,28 +114,55 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const data = { username, password, grant_type: 'password' }
     const headers = { 'content-type': 'application/x-www-form-urlencoded' }
     await axios.post(loginUrl, data, { headers }).then(function (response) {
-      const userId = response.data.user.username //!暫時使用username 記得改回!
+      const accountId = response.data.user.account_id
+      const accountData = response.data.user
+
       const token = response.data.token
       localStorage.setItem('remember', remember.toString())
 
-      if (remember) {
-        localStorage.setItem('userId', userId)
-        sessionStorage.setItem('userId', userId)
+      if (remember && accountId) {
+        localStorage.setItem('accountId', accountId)
+        sessionStorage.setItem('accountId', accountId)
       } else {
-        localStorage.removeItem('userId')
+        localStorage.removeItem('accountId')
         localStorage.removeItem('token')
-        sessionStorage.setItem('userId', userId)
+        sessionStorage.setItem('accountId', accountId)
       }
       setWithExpiry('token', token, 3600000) //token 有效1小時
-      dispatch({ type: Action.LOGIN, payload: { userId } })
+      dispatch({ type: Action.LOGIN, payload: { accountId, accountData } })
     })
   }
 
-  const register = async (email: string, username: string, password: string) => {
-    const response = await axios.post('/api/auth/register', { email, username, password })
-    const { userId } = response.data
+  const tokenLogin = async (accountId: string, token: string) => {
+    const loginUrl = `${WEB_API_URL}accounts/${accountId}`
 
-    dispatch({ type: Action.REGISTER, payload: { userId } })
+    const headers = {
+      Authorization: 'Bearer' + token
+    }
+
+    try {
+      const response = await axios.get(loginUrl, { headers })
+      const accountData = response.data
+
+      dispatch({ type: Action.TOKENLOGIN, payload: { accountData } })
+    } catch (error) {
+      console.error(`Token驗證時發生錯誤:`, error)
+    }
+  }
+
+  const register = async (formData: object) => {
+    const loginUrl = `${WEB_API_URL}oauth2/token/register`
+    const headers = { 'content-type': 'application/x-www-form-urlencoded' }
+    const { username, email, password } = formData
+    const registerData = { username, password, email }
+    try {
+      const response = await axios.post(loginUrl, registerData, { headers })
+      // await login(username, password)
+    } catch (error) {
+      console.error(`註冊帳戶時發生錯誤:`, error)
+    }
+
+    dispatch({ type: Action.REGISTER })
   }
 
   const logout = () => {
@@ -151,23 +174,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     ;(async () => {
       try {
-        const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId')
+        const accountId = localStorage.getItem('accountId') || sessionStorage.getItem('accountId')
 
-        if (userId) {
-          dispatch({ type: Action.INIT, payload: { isAuthenticated: true, userId } })
+        if (accountId) {
+          dispatch({ type: Action.INIT, payload: { isAuthenticated: true, accountId, accountData: null } })
         }
       } catch (err) {
         console.error(err)
-        dispatch({ type: Action.INIT, payload: { isAuthenticated: false, userId: null } })
+        dispatch({ type: Action.INIT, payload: { isAuthenticated: false, accountId: null, accountData: null } })
       }
     })()
   }, [])
 
-  // SHOW LOADER
   if (!state.isInitialised) return <MatxLoading />
 
   return (
-    <AuthContext.Provider value={{ ...state, method: 'JWT', login, logout, register }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider value={{ ...state, method: 'JWT', login, tokenLogin, logout, register }}>
+      {children}
+    </AuthContext.Provider>
   )
 }
 

@@ -36,7 +36,7 @@ const columns: GridColDef[] = [
   },
   {
     field: 'department',
-    headerName: '身分別',
+    headerName: '部門',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -98,9 +98,6 @@ const columns: GridColDef[] = [
             <EditIcon color='info' />
           </IconButton>
         </Link>
-        <IconButton aria-label='delete'>
-          <DeleteIcon color='error' />
-        </IconButton>
       </div>
     )
   }

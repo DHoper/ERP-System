@@ -19,7 +19,7 @@ export interface ShowPasswordType {
 
 export const RegisterValidationSchema = Yup.object().shape({
   username: Yup.string().required('請輸入使用者名稱'),
-  email: Yup.string().email('請輸入有效的郵件地址').required('請輸入Email'),
+  email: Yup.string().email('請輸入有效的郵件地址').required('請輸入郵件地址'),
   password: Yup.string().min(6, '密碼至少需要 6 個字符').required('請輸入密碼'),
   confirmPassword: Yup.string()
     .oneOf([Yup.ref('password')], '必須與密碼相同')

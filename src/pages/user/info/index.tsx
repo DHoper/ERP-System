@@ -9,6 +9,7 @@ import TabContext from '@mui/lab/TabContext'
 import { styled, useTheme } from '@mui/material/styles'
 import MuiTab, { TabProps } from '@mui/material/Tab'
 import Box from '@mui/material/Box'
+import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace'
 
 // ** Icons Imports
 import AccountOutline from 'mdi-material-ui/AccountOutline'
@@ -22,8 +23,10 @@ import TabSecurity from './components/TabSecurity'
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
-import { Paper, Stack, Typography, Button } from '@mui/material'
+import { Paper, Stack, Typography, Button, IconButton } from '@mui/material'
 import { ClassNames } from '@emotion/react'
+import { formatBirthDate } from 'src/utils/format'
+import { useRouter } from 'next/router'
 
 const Tab = styled(MuiTab)<TabProps>(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
@@ -43,8 +46,21 @@ const TabName = styled('span')(({ theme }) => ({
   }
 }))
 
+const StyledButton = styled(Button)({
+  backgroundColor: 'white',
+  color: '#9155FD',
+  marginBottom: '1rem',
+  '&:hover': {
+    backgroundColor: '#9155FD',
+    color: 'white',
+  },
+});
+
+
 const UserManagement = () => {
   const theme = useTheme()
+
+  const router = useRouter()
 
   // ** State
   const [value, setValue] = useState<string>('account')
@@ -57,6 +73,13 @@ const UserManagement = () => {
 
   return (
     <>
+      <StyledButton
+        variant='contained'
+        startIcon={<KeyboardBackspaceIcon fontSize='medium' />}
+        onClick={() => router.back()}
+      >
+        返回
+      </StyledButton>
       <Card sx={{ backgroundColor: isNotVertify ? '#fafafa' : null }}>
         <TabContext value={value}>
           <TabList
@@ -151,7 +174,7 @@ const UserManagement = () => {
  *
  * @type {{ _id: string; avatarImgUrl: string; username: string; name: string; password: string; email: string; phone: string; address: string; gender: number; department: number; jobTitle: string; languages: {}; country: string; intro: string; birthDate: string; isActive: boolean; }}
  */
-const userData = {
+let userData = {
   _id: '1',
   avatarImgUrl:
     'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?q=80&w=2080&auto=format&fit=crop&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
@@ -167,8 +190,10 @@ const userData = {
   languages: [1],
   country: '緬甸',
   intro: 'A asdwdas asddasdasfwawadss. sadla;sdsadksa;ldk asdasdkl;asd\nAsadsdaa\nSaslkdadalkjdadjl',
-  birthDate: '2023-11-21T16:00:00.000Z',
+  birthDate: 'Fri Nov 03 2023 00:00:00 GMT+0800 (台北標準時間)',
   isActive: true
 }
+
+// userData.birthDate = formatBirthDate(userData.birthDate)
 
 export default UserManagement

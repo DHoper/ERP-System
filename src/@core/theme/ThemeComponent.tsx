@@ -56,21 +56,24 @@ const ThemeComponent = (props: Props) => {
   const isRegisterPage = router.pathname === '/auth/register'
 
   const authContext = useContext<AuthContextType>(AuthContext)
-  const { userId } = authContext
 
   const token = getWithExpiry('token')
 
-  // useEffect(() => {
-  //   if ((!userId || !token) && !isLoginPage && !isRegisterPage) {
-  //     router.push('/auth/login')
-  //   }
-  // }, [userId, token, isLoginPage, isRegisterPage, router])
+  const { accountId, accountData, tokenLogin } = authContext
 
-  // useEffect(() => {
-  //   if (isLoginPage && userId && token) {
-  //     router.push('/')
-  //   }
-  // }, [isLoginPage, router, token, userId])
+  useEffect(() => {
+    if ((!accountId || !token) && !isLoginPage && !isRegisterPage) {
+      router.push('/auth/login')
+    } else if (accountId && token && !accountData) {
+      ;(async () => tokenLogin(accountId, token))()
+    }
+  }, [accountId, token, isLoginPage, isRegisterPage, router, tokenLogin, accountData])
+
+  useEffect(() => {
+    if (isLoginPage && accountId && token && accountData) {
+      router.push('/')
+    }
+  }, [isLoginPage, router, token, accountId, accountData])
 
   return (
     <ThemeProvider theme={theme}>

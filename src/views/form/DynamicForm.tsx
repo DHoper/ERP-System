@@ -12,51 +12,60 @@ import {
   TextField,
   InputLabel,
   styled,
-  SelectChangeEvent
+  SelectChangeEvent,
+  IconButton,
+  InputAdornment,
+  OutlinedInput
 } from '@mui/material'
 import { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { TextValidator, ValidatorForm } from 'react-material-ui-form-validator'
 import { DynamicFormType } from '../../types/ComponentsTypes'
 import PhoneInput from './fieldElements/PhoneInput'
-import DatePicker from 'react-datepicker'
+import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
+import zhTW from 'date-fns/locale/zh-TW'
+import { format } from 'date-fns'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { ObjectSchema } from 'yup'
-import { UserDataType } from 'src/types/UserType'
+import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
+import EyeOutline from 'mdi-material-ui/EyeOutline'
+import { ShowPasswordType } from 'src/types/AuthTypes'
 
 interface DynamicFormProps {
   fields: DynamicFormType[]
   vaildationSchema: ObjectSchema<any>
   formData: Record<string, any>
-  handleSubmitForm: (formData: UserDataType) => Promise<void>
+  handleSubmitForm: (formData: object) => Promise<void>
   disabled?: boolean
+  spacing?: number
 }
 
 const DynamicForm = forwardRef<any, DynamicFormProps>(
-  ({ fields, vaildationSchema, formData, handleSubmitForm, disabled = false }, ref) => {
-    const [date, setDate] = useState<Date | null | undefined>(null)
+  ({ fields, vaildationSchema, formData, handleSubmitForm, disabled = false, spacing = 6 }, ref) => {
+    const [showPassword, setShowPassword] = useState<ShowPasswordType>({
+      password: false,
+      confirmPassword: false
+    })
 
     // ** 驗證
     const formOptions = {
       resolver: yupResolver(vaildationSchema),
       defaultValues: formData || null
-    } //! react-form-hook 提供動態異步 defaultValues 設置 !
+    }
+
     const { register, handleSubmit, reset, trigger, control, formState } = useForm(formOptions)
     const { errors } = formState
 
     useImperativeHandle(ref, () => ({
-      submitForm: () => {
-        handleSubmit(handleSubmitForm)()
+      submitForm: async () => {
+        await handleSubmit(handleSubmitForm)()
       },
       resetForm: () => {
         reset()
       }
     }))
 
-    const handleFieldChange = (fieldName: string, value: any) => {
-      onChange(fieldName, value)
-    }
     const formElements: React.ReactNode[] = []
 
     fields.map((fieldFactor: DynamicFormType, index: number) => {
@@ -64,7 +73,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
 
       switch (fieldFactor.fieldType) {
         case 'text':
-        case 'password':
           element = (
             <TextField
               {...register(fieldFactor.name)}
@@ -76,9 +84,49 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
               minRows={fieldFactor.minRows}
               multiline={!!fieldFactor.minRows}
               disabled={disabled}
-              fullWidth
+              fullWidth={fieldFactor.fullWidth}
             />
           )
+          break
+        case 'password':
+          const handleClickShowPassword = (type: 'password' | 'confirmPassword') => {
+            const carrier = { ...showPassword, [type]: !showPassword[type] }
+            setShowPassword(carrier)
+          }
+
+          const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
+            event.preventDefault()
+          }
+
+          if (fieldFactor.name !== 'password' && fieldFactor.name !== 'confirmPassword') return
+
+          element = (
+            <FormControl fullWidth={fieldFactor.fullWidth}>
+              <InputLabel htmlFor='auth-login-password'>{fieldFactor.label}</InputLabel>
+
+              <OutlinedInput
+                id={fieldFactor.name}
+                {...register(fieldFactor.name)}
+                label={fieldFactor.label}
+                onBlur={() => trigger(fieldFactor.name)}
+                type={showPassword[fieldFactor.name] ? 'text' : 'password'}
+                endAdornment={
+                  <InputAdornment position='end'>
+                    <IconButton
+                      edge='end'
+                      onClick={() => handleClickShowPassword(fieldFactor.name as 'password' | 'confirmPassword')}
+                      onMouseDown={handleMouseDownPassword}
+                      aria-label='toggle password visibility'
+                    >
+                      {showPassword[fieldFactor.name] ? <EyeOutline /> : <EyeOffOutline />}
+                    </IconButton>
+                  </InputAdornment>
+                }
+                sx={{ ...fieldFactor.sx }}
+              />
+            </FormControl>
+          )
+
           break
 
         /*   case 'phone':
@@ -90,33 +138,40 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         )
         break */
         case 'date':
-          const CustomInput = forwardRef((props, ref) => {
-            return <TextField inputRef={ref} label={fieldFactor.label} fullWidth {...props} />
-          })
+          const CustomInput = forwardRef((props, ref) => (
+            <TextField inputRef={ref} label={fieldFactor.label} fullWidth={fieldFactor.fullWidth} {...props} />
+          ))
+
+          registerLocale('zh-TW', zhTW)
+          setDefaultLocale('zh-TW')
 
           element = (
-            <DatePickerWrapper>
-              <DatePicker
-                {...register(fieldFactor.name)}
-                onBlur={() => trigger(fieldFactor.name)}
-                selected={new Date(formData[fieldFactor.name])}
-                showYearDropdown
-                showMonthDropdown
-                id='account-settings-date'
-                placeholderText='MM-DD-YYYY'
-                customInput={<CustomInput />}
-                disabled={disabled}
-                onChange={date => {
-                  handleFieldChange(fieldFactor.name, date)
-                }}
+            <FormControl fullWidth={fieldFactor.fullWidth} disabled={false}>
+              <Controller
+                name={fieldFactor.name}
+                control={control}
+                render={({ field }) => (
+                  <DatePickerWrapper>
+                    <DatePicker
+                      {...field}
+                      customInput={<CustomInput />}
+                      onBlur={() => field.onBlur()}
+                      selected={field.value ? new Date(field.value) : null}
+                      placeholderText='YYYY-MM-DD (EEE)'
+                      locale='zh-TW'
+                      dateFormat='yyyy年 MMM dd日 (EEE)'
+                      onChange={date => field.onChange(date)}
+                    />
+                  </DatePickerWrapper>
+                )}
               />
-            </DatePickerWrapper>
+            </FormControl>
           )
           break
 
         case 'select':
           element = (
-            <FormControl fullWidth variant='outlined'>
+            <FormControl fullWidth={fieldFactor.fullWidth} variant='outlined'>
               <InputLabel>{fieldFactor.label}</InputLabel>
               <Controller
                 name={fieldFactor.name}
@@ -127,7 +182,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
                     onBlur={() => trigger(fieldFactor.name)}
                     label={fieldFactor.label}
                     disabled={disabled}
-                    fullWidth
                   >
                     {fieldFactor.options?.map((option, optionIndex) => (
                       <MenuItem key={optionIndex} value={option.value}>
@@ -142,77 +196,96 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
           break
         case 'multipleSelect':
           element = (
-            <FormControl fullWidth variant='outlined'>
+            <FormControl fullWidth={fieldFactor.fullWidth} variant='outlined'>
               <InputLabel>{fieldFactor.label}</InputLabel>
-              <Select
-                {...register(fieldFactor.name)}
-                onBlur={() => trigger(fieldFactor.name)}
-                label={fieldFactor.label}
-                fullWidth
-                disabled={disabled}
-                multiple
-              >
-                {fieldFactor.options?.map((option, optionIndex) => (
-                  <MenuItem key={optionIndex} value={option.value}>
-                    {option.label}
-                  </MenuItem>
-                ))}
-              </Select>
+              <Controller
+                name={fieldFactor.name}
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    multiple
+                    {...field}
+                    onBlur={() => trigger(fieldFactor.name)}
+                    label={fieldFactor.label}
+                    disabled={disabled}
+                  >
+                    {fieldFactor.options?.map((option, optionIndex) => (
+                      <MenuItem key={optionIndex} value={option.value}>
+                        {option.label}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                )}
+              />
             </FormControl>
           )
           break
-
         case 'radioGroup':
           element = (
-            <FormControl>
+            <FormControl fullWidth disabled={disabled}>
               <FormLabel>{fieldFactor.label}</FormLabel>
-              <RadioGroup
-                row
+              <Controller
                 name={fieldFactor.name}
-                sx={{ ...fieldFactor.sx }}
-                value={formData[fieldFactor.name] || 1}
-              >
-                {fieldFactor.options?.map((option, optionIndex) => (
-                  <FormControlLabel
-                    {...register(fieldFactor.name)}
-                    onBlur={() => trigger(fieldFactor.name)}
-                    key={optionIndex}
-                    label={option.label}
-                    disabled={disabled}
-                    labelPlacement='end'
-                    control={<Radio color='primary' />}
-                  />
-                ))}
-              </RadioGroup>
+                control={control}
+                render={({ field }) => (
+                  <RadioGroup {...field} row onBlur={() => trigger(fieldFactor.name)}>
+                    {fieldFactor.options?.map((option, optionIndex) => (
+                      <FormControlLabel
+                        key={optionIndex}
+                        label={option.label}
+                        value={option.value}
+                        control={<Radio color='primary' />}
+                      />
+                    ))}
+                  </RadioGroup>
+                )}
+              />
             </FormControl>
           )
           break
 
         case 'checkbox':
           element = (
-            <FormControlLabel
-              {...register(fieldFactor.name)}
-              onBlur={() => trigger(fieldFactor.name)}
-              control={<Checkbox checked={formData[fieldFactor.name] || false} disabled={disabled} />}
-              label={fieldFactor.label}
-            />
+            <FormControl fullWidth={fieldFactor.fullWidth}>
+              <FormControlLabel
+                onBlur={() => trigger(fieldFactor.name)}
+                control={
+                  <Controller
+                    name={fieldFactor.name}
+                    control={control}
+                    render={({ field }) => (
+                      <Checkbox
+                        {...field}
+                        checked={field.value || false}
+                        disabled={disabled}
+                        onChange={e => {
+                          field.onChange(e)
+                          fieldFactor.action && fieldFactor.action()
+                        }}
+                      />
+                    )}
+                  />
+                }
+                label={fieldFactor.label}
+              />
+            </FormControl>
           )
           break
 
-        case 'switch':
-          element = (
-            <FormControlLabel
-              {...register(fieldFactor.name)}
-              onBlur={() => trigger(fieldFactor.name)}
-              sx={{ marginLeft: '' }}
-              control={<Switch sx={{ m: 1 }} defaultChecked />}
-              label={fieldFactor.label}
-              labelPlacement='start'
-              value={formData[fieldFactor.name]}
-              disabled={disabled}
-            />
-          )
-          break
+        // case 'switch':
+        //   element = (
+        //     <FormControlLabel
+        //       {...register(fieldFactor.name)}
+        //       onBlur={() => trigger(fieldFactor.name)}
+        //       sx={{ marginLeft: '' }}
+        //       control={<Switch sx={{ m: 1 }} defaultChecked />}
+        //       label={fieldFactor.label}
+        //       labelPlacement='start'
+        //       value={formData[fieldFactor.name]}
+        //       disabled={disabled}
+        //     />
+        //   )
+        //   break
 
         default:
           element = null
@@ -251,7 +324,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
     return (
       <div>
         <form noValidate autoComplete='off' onSubmit={handleSubmit(handleSubmitForm)}>
-          <Grid item container spacing={6}>
+          <Grid item container spacing={spacing}>
             {formElements}
           </Grid>
         </form>
@@ -261,6 +334,3 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
 )
 
 export default DynamicForm
-function setValue(arg0: string, department: any) {
-  throw new Error('Function not implemented.')
-}
