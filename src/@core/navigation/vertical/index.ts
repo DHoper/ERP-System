@@ -5,6 +5,7 @@ import CubeOutline from 'mdi-material-ui/CubeOutline'
 import HomeOutline from 'mdi-material-ui/HomeOutline'
 import FormatLetterCase from 'mdi-material-ui/FormatLetterCase'
 import AccountCogOutline from 'mdi-material-ui/AccountCogOutline'
+import PeopleIcon from '@mui/icons-material/People'
 import CreditCardOutline from 'mdi-material-ui/CreditCardOutline'
 import AccountPlusOutline from 'mdi-material-ui/AccountPlusOutline'
 import AlertCircleOutline from 'mdi-material-ui/AlertCircleOutline'
@@ -26,7 +27,7 @@ const navigation = (): VerticalNavItemsType => {
       path: '/user'
     },
     {
-      sectionTitle: '儀表板'
+      sectionTitle: '帳戶操作'
     },
     {
       title: 'Login',
@@ -47,7 +48,12 @@ const navigation = (): VerticalNavItemsType => {
       openInNewTab: true
     },
     {
-      sectionTitle: 'User Interface'
+      sectionTitle: '主控板'
+    },
+    {
+      title: '會員管理',
+      icon: PeopleIcon,
+      path: '/member'
     },
     {
       title: 'Typography',

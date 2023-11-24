@@ -42,6 +42,7 @@ import Container from '@mui/material/Container'
 import DynamicForm from 'src/views/form/DynamicForm'
 import { DynamicFormType } from 'src/types/ComponentsTypes'
 import AuthContext, { AuthContextType } from 'src/context/user/user'
+import { useRouter } from 'next/router'
 
 // ** Styled Components
 const Card = styled(MuiCard)<CardProps>(({ theme }) => ({
@@ -60,6 +61,8 @@ const RegisterPage = () => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState({})
   const [policyAgree, setPolicyAgree] = useState<boolean>(false)
+
+  const router = useRouter()
 
   // ** Hook
   const dynamicFormRef = useRef(null)
@@ -120,6 +123,7 @@ const RegisterPage = () => {
     try {
       const { register } = authContext
       await register(formData)
+      router.push('/auth/login')
     } catch (error) {
       console.error('使用 register context 時發生錯誤:', error)
     }

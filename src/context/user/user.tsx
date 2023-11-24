@@ -26,7 +26,8 @@ enum Action {
   TOKENLOGIN = 'TOKENLOGIN',
   LOGOUT = 'LOGOUT',
   INIT = 'INIT',
-  REGISTER = 'REGISTER'
+  REGISTER = 'REGISTER',
+  UPDATE = 'UPDATE'
 }
 
 export type ActionType = {
@@ -38,9 +39,9 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
   switch (action.type) {
     case Action.INIT: {
       if (!action.payload) return state
-      const { isAuthenticated, accountId, accountData } = action.payload
+      const { isAuthenticated, accountId } = action.payload
 
-      return { ...state, isAuthenticated, isInitialised: true, accountId, accountData }
+      return { ...state, isAuthenticated, isInitialised: true, accountId }
     }
 
     case Action.LOGOUT: {
@@ -56,13 +57,17 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
 
     case Action.LOGIN: {
       if (!action.payload) return state
-      const { accountId } = action.payload
+      const { accountId, accountData } = action.payload
 
-      return { ...state, isAuthenticated: true, accountId }
+      return { ...state, isAuthenticated: true, accountId, accountData }
     }
 
     case Action.REGISTER: {
       return { ...state, isAuthenticated: true }
+    }
+
+    case Action.UPDATE: {
+      return { ...state }
     }
 
     default:
@@ -80,6 +85,7 @@ export type AuthContextType = {
   tokenLogin: (accountId: string, token: string) => Promise<void>
   logout: () => void
   register: (formData: object) => Promise<void>
+  update: (formData: UserDataType) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -99,6 +105,9 @@ const AuthContext = createContext<AuthContextType>({
   },
   register: function (): Promise<void> {
     throw new Error('Function not implemented.')
+  },
+  update: function (): Promise<void> {
+    throw new Error('Function not implemented.')
   }
 })
 
@@ -110,13 +119,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer<React.Reducer<StateType, ActionType>>(reducer, initialState)
 
   const login = async (username: string, password: string, remember = false) => {
-    const loginUrl = WEB_API_URL + 'oauth2/token'
+    const loginUrl = WEB_API_URL + '/oauth/login'
     const data = { username, password, grant_type: 'password' }
     const headers = { 'content-type': 'application/x-www-form-urlencoded' }
-    await axios.post(loginUrl, data, { headers }).then(function (response) {
+    try {
+      const response = await axios.post(loginUrl, data, { headers })
       const accountId = response.data.user.account_id
       const accountData = response.data.user
-
       const token = response.data.token
       localStorage.setItem('remember', remember.toString())
 
@@ -128,13 +137,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         localStorage.removeItem('token')
         sessionStorage.setItem('accountId', accountId)
       }
+
       setWithExpiry('token', token, 3600000) //token 有效1小時
       dispatch({ type: Action.LOGIN, payload: { accountId, accountData } })
-    })
+    } catch (error) {
+      console.error('登陸時發生錯誤:', error)
+    }
   }
 
   const tokenLogin = async (accountId: string, token: string) => {
-    const loginUrl = `${WEB_API_URL}accounts/${accountId}`
+    const loginUrl = `${WEB_API_URL}/accounts/${accountId}`
 
     const headers = {
       Authorization: 'Bearer' + token
@@ -151,18 +163,45 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const register = async (formData: object) => {
-    const loginUrl = `${WEB_API_URL}oauth2/token/register`
+    const loginUrl = `${WEB_API_URL}/oauth/register`
     const headers = { 'content-type': 'application/x-www-form-urlencoded' }
     const { username, email, password } = formData
     const registerData = { username, password, email }
     try {
       const response = await axios.post(loginUrl, registerData, { headers })
+
       // await login(username, password)
     } catch (error) {
       console.error(`註冊帳戶時發生錯誤:`, error)
     }
 
     dispatch({ type: Action.REGISTER })
+  }
+
+  const update = async (formData: UserDataType, token) => {
+    const { account_id } = formData
+    delete formData.account_id
+    delete formData.group_name
+    delete formData.update_time
+    delete formData.create_time
+
+    const headers = {
+      Authorization: 'Bearer' + token
+    }
+
+    console.log(formData.head_portrait)
+
+    const loginUrl = `${WEB_API_URL}/accounts/${account_id}`
+    console.log(formData, loginUrl)
+
+    try {
+      const response = await axios.patch(loginUrl, formData, { headers })
+      const accountData = response.data
+
+      dispatch({ type: Action.REGISTER, payload: { accountData } })
+    } catch (error) {
+      console.error(`註冊帳戶時發生錯誤:`, error)
+    }
   }
 
   const logout = () => {
@@ -189,7 +228,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   if (!state.isInitialised) return <MatxLoading />
 
   return (
-    <AuthContext.Provider value={{ ...state, method: 'JWT', login, tokenLogin, logout, register }}>
+    <AuthContext.Provider value={{ ...state, method: 'JWT', login, tokenLogin, logout, register, update }}>
       {children}
     </AuthContext.Provider>
   )

@@ -46,12 +46,12 @@ const dynamicFormFields: DynamicFormType[] = [
   {
     name: 'languages',
     label: '語言',
-    fieldType: 'multipleSelect',
+    fieldType: 'select',
     fullWidth: false,
     options: [
-      { value: 1, label: '中文' },
-      { value: 2, label: '英文' },
-      { value: 3, label: '泰文' }
+      { value: 0, label: '中文' },
+      { value: 1, label: '英文' },
+      { value: 2, label: '泰文' }
     ]
   },
   {
@@ -60,9 +60,8 @@ const dynamicFormFields: DynamicFormType[] = [
     fieldType: 'radioGroup',
     fullWidth: false,
     options: [
-      { value: 1, label: '男' },
-      { value: 2, label: '女' },
-      { value: 3, label: '其他' }
+      { value: 0, label: '男' },
+      { value: 1, label: '女' },
     ]
   }
 ]

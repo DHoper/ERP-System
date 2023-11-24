@@ -15,7 +15,10 @@ import {
   SelectChangeEvent,
   IconButton,
   InputAdornment,
-  OutlinedInput
+  OutlinedInput,
+  Divider,
+  Typography,
+  Chip
 } from '@mui/material'
 import { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useState } from 'react'
 import { TextValidator, ValidatorForm } from 'react-material-ui-form-validator'
@@ -84,7 +87,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
               minRows={fieldFactor.minRows}
               multiline={!!fieldFactor.minRows}
               disabled={disabled}
-              fullWidth={fieldFactor.fullWidth}
+              fullWidth
             />
           )
           break
@@ -101,13 +104,14 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
           if (fieldFactor.name !== 'password' && fieldFactor.name !== 'confirmPassword') return
 
           element = (
-            <FormControl fullWidth={fieldFactor.fullWidth}>
+            <FormControl fullWidth>
               <InputLabel htmlFor='auth-login-password'>{fieldFactor.label}</InputLabel>
 
               <OutlinedInput
                 id={fieldFactor.name}
                 {...register(fieldFactor.name)}
                 label={fieldFactor.label}
+                sx={{ ...fieldFactor.sx }}
                 onBlur={() => trigger(fieldFactor.name)}
                 type={showPassword[fieldFactor.name] ? 'text' : 'password'}
                 endAdornment={
@@ -139,14 +143,14 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         break */
         case 'date':
           const CustomInput = forwardRef((props, ref) => (
-            <TextField inputRef={ref} label={fieldFactor.label} fullWidth={fieldFactor.fullWidth} {...props} />
+            <TextField inputRef={ref} label={fieldFactor.label} fullWidth {...props} />
           ))
 
           registerLocale('zh-TW', zhTW)
           setDefaultLocale('zh-TW')
 
           element = (
-            <FormControl fullWidth={fieldFactor.fullWidth} disabled={false}>
+            <FormControl fullWidth disabled={false}>
               <Controller
                 name={fieldFactor.name}
                 control={control}
@@ -171,7 +175,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
 
         case 'select':
           element = (
-            <FormControl fullWidth={fieldFactor.fullWidth} variant='outlined'>
+            <FormControl fullWidth variant='outlined'>
               <InputLabel>{fieldFactor.label}</InputLabel>
               <Controller
                 name={fieldFactor.name}
@@ -196,7 +200,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
           break
         case 'multipleSelect':
           element = (
-            <FormControl fullWidth={fieldFactor.fullWidth} variant='outlined'>
+            <FormControl fullWidth variant='outlined'>
               <InputLabel>{fieldFactor.label}</InputLabel>
               <Controller
                 name={fieldFactor.name}
@@ -228,7 +232,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
                 name={fieldFactor.name}
                 control={control}
                 render={({ field }) => (
-                  <RadioGroup {...field} row onBlur={() => trigger(fieldFactor.name)}>
+                  <RadioGroup {...field} row onBlur={() => trigger(fieldFactor.name)} sx={{ ...fieldFactor.sx }}>
                     {fieldFactor.options?.map((option, optionIndex) => (
                       <FormControlLabel
                         key={optionIndex}
@@ -246,9 +250,10 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
 
         case 'checkbox':
           element = (
-            <FormControl fullWidth={fieldFactor.fullWidth}>
+            <FormControl fullWidth>
               <FormControlLabel
                 onBlur={() => trigger(fieldFactor.name)}
+                sx={{ ...fieldFactor.sx }}
                 control={
                   <Controller
                     name={fieldFactor.name}
@@ -286,7 +291,16 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         //     />
         //   )
         //   break
-
+        case 'divider':
+          element = (
+            <Divider sx={{ ...fieldFactor.sx, marginTop: 12 }} textAlign='center'>
+              <Chip color='primary' label={fieldFactor.label} />
+              {/* <Typography variant='h7' fontWeight={'600'}>
+                {fieldFactor.label}
+              </Typography> */}
+            </Divider>
+          )
+          break
         default:
           element = null
       }

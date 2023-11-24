@@ -2,7 +2,7 @@ import { Stack, Avatar, Button, styled, Dialog, Box, Typography } from '@mui/mat
 import { useState } from 'react'
 import ImageCrop from './imageUpload/ImageCrop'
 
-const AvatarImage = ({ avatarImgUrl, onChange, disabled }) => {
+const AvatarImage = ({ avatarImgUrl, onChange, sx = {}, direction = 'row', disabled = false }) => {
   const [showImageCrop, setShowImageCrop] = useState(false)
   const [imgFile, setImgFile] = useState<FileList>()
   const [avatatUrl, setAvatarUrl] = useState<string>(avatarImgUrl || '')
@@ -14,10 +14,10 @@ const AvatarImage = ({ avatarImgUrl, onChange, disabled }) => {
     }
   }
 
-  const handleClose = (url: string) => {
+  const handleClose = (url: string, blob: Blob) => {
     setShowImageCrop(false)
     setAvatarUrl(url)
-    onChange('avatarImgUrl', url)
+    onChange(url, blob)
   }
 
   const VisuallyHiddenInput = styled('input')({
@@ -34,18 +34,22 @@ const AvatarImage = ({ avatarImgUrl, onChange, disabled }) => {
 
   return (
     <>
-      <Stack sx={{ justifyContent: { xs: 'center', xl: 'start' } }} spacing={6} direction={'row'}>
+      <Stack
+        sx={{ justifyContent: { xs: 'center', xl: 'start' }, alignItems: 'center', ...sx }}
+        spacing={6}
+        direction={direction}
+      >
         <Avatar
           alt="User's Avatar"
           src={avatatUrl}
           sx={{ width: 150, height: 150, filter: disabled ? 'saturate(20%)' : null }}
         />
         <Stack spacing={4} justifyContent={'center'}>
-          <Button component='label' variant='contained' disableElevation size='small' disabled={disabled}>
+          <Button component='label' variant='contained' disableElevation disabled={disabled}>
             上傳頭像
             <VisuallyHiddenInput onChange={handleSlectFile} type='file' />
           </Button>
-          <Typography variant='subtitle2' color='initial' sx={{ color: disabled ? '#bdbdbd' : null }}>
+          <Typography fontSize={12} variant='subtitle2' color='initial' sx={{ color: disabled ? '#bdbdbd' : null }}>
             可接受格式: PNG & JPEG
           </Typography>
         </Stack>

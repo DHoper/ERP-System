@@ -5,7 +5,21 @@ import 'react-image-crop/dist/ReactCrop.css'
 import { useState, useRef } from 'react'
 import { Button, Stack, Typography, Container, Slider } from '@mui/material'
 
-export default function ImageCrop(props: { file: FileList; onClose: (url: string) => void }) {
+function blobToBase64(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result)
+      } else {
+        reject(new Error('Failed to convert Blob to Base64'))
+      }
+    }
+    reader.readAsDataURL(blob)
+  })
+}
+
+export default function ImageCrop(props: { file: FileList; onClose: (url: string, blob: Blob) => void }) {
   const [imgSrc, setImgSrc] = useState('')
   const imgRef = useRef<HTMLImageElement>(null)
   const blobUrlRef = useRef('')
@@ -62,7 +76,7 @@ export default function ImageCrop(props: { file: FileList; onClose: (url: string
 
     const blob = await offscreen.convertToBlob({
       type: 'image/jpeg',
-      quality: 1
+      quality: 0.8
     })
 
     if (blobUrlRef.current) {
@@ -70,7 +84,29 @@ export default function ImageCrop(props: { file: FileList; onClose: (url: string
     }
     blobUrlRef.current = URL.createObjectURL(blob)
 
-    props.onClose(blobUrlRef.current)
+    // const base64String = await blobToBase64(blob).then(base64String => {
+
+    //   return base64String
+    // })
+
+    const blobBuffer = await blob.arrayBuffer()
+    console.log(blob, 93)
+    // const uint8Array = new Uint8Array(blobBuffer)
+
+    function arrayBufferToHex(arrayBuffer) {
+      const uint8Array = new Uint8Array(arrayBuffer)
+
+      return Array.from(uint8Array)
+        .map(byte => byte.toString(16).padStart(2, '0'))
+        .join('')
+    }
+
+    
+
+    const hexString = arrayBufferToHex(blobBuffer)
+    console.log(hexString, 71);
+
+    props.onClose(blobUrlRef.current, hexString)
   }
 
   function centerAspectCrop(mediaWidth: number, mediaHeight: number, aspect: number) {

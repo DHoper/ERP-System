@@ -3,8 +3,8 @@ import DataTable from '../../views/dataTable/dataTable'
 import UserData from './userFakeData'
 import { Chip, IconButton } from '@mui/material'
 import CircleIcon from '@mui/icons-material/Circle'
-import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import EditIcon from '@mui/icons-material/Edit'
+import GroupIcon from '@mui/icons-material/Group'
 import DeleteIcon from '@mui/icons-material/Delete'
 import Link from 'next/link'
 
@@ -92,9 +92,9 @@ const columns: GridColDef[] = [
     align: 'center',
     sortable: false,
     width: 120,
-    renderCell: () => (
+    renderCell: params => (
       <div>
-        <Link passHref href='/user/info'>
+        <Link passHref href={`/member/information/${params.row.id}`}>
           <IconButton aria-label='edit'>
             <EditIcon color='info' />
           </IconButton>
@@ -189,7 +189,7 @@ const rows = [
 const UserTable = () => {
   return (
     <>
-      <DataTable tableName='用戶管理' rows={rows} columns={columns} icon={ManageAccountsIcon} />
+      <DataTable tableName='會員管理' rows={rows} columns={columns} icon={GroupIcon} />
     </>
   )
 }
