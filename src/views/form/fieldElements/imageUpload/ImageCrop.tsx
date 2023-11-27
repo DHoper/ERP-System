@@ -19,7 +19,7 @@ function blobToBase64(blob: Blob): Promise<string> {
   })
 }
 
-export default function ImageCrop(props: { file: FileList; onClose: (url: string, blob: Blob) => void }) {
+export default function ImageCrop(props: { file: FileList; onClose: (url: string, hexString: string) => void }) {
   const [imgSrc, setImgSrc] = useState('')
   const imgRef = useRef<HTMLImageElement>(null)
   const blobUrlRef = useRef('')
@@ -84,16 +84,9 @@ export default function ImageCrop(props: { file: FileList; onClose: (url: string
     }
     blobUrlRef.current = URL.createObjectURL(blob)
 
-    // const base64String = await blobToBase64(blob).then(base64String => {
-
-    //   return base64String
-    // })
-
     const blobBuffer = await blob.arrayBuffer()
-    console.log(blob, 93)
-    // const uint8Array = new Uint8Array(blobBuffer)
 
-    function arrayBufferToHex(arrayBuffer) {
+    function arrayBufferToHex(arrayBuffer: ArrayBuffer) {
       const uint8Array = new Uint8Array(arrayBuffer)
 
       return Array.from(uint8Array)
@@ -101,10 +94,8 @@ export default function ImageCrop(props: { file: FileList; onClose: (url: string
         .join('')
     }
 
-    
-
     const hexString = arrayBufferToHex(blobBuffer)
-    console.log(hexString, 71);
+  
 
     props.onClose(blobUrlRef.current, hexString)
   }

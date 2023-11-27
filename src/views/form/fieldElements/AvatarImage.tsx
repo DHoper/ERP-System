@@ -14,10 +14,10 @@ const AvatarImage = ({ avatarImgUrl, onChange, sx = {}, direction = 'row', disab
     }
   }
 
-  const handleClose = (url: string, blob: Blob) => {
+  const handleClose = (url: string, hexString: string) => {
     setShowImageCrop(false)
     setAvatarUrl(url)
-    onChange(url, blob)
+    onChange(url, hexString)
   }
 
   const VisuallyHiddenInput = styled('input')({
@@ -31,6 +31,7 @@ const AvatarImage = ({ avatarImgUrl, onChange, sx = {}, direction = 'row', disab
     whiteSpace: 'nowrap',
     width: 1
   })
+  
 
   return (
     <>

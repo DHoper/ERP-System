@@ -41,7 +41,7 @@ import MailAirplane from './component/MailAirplane'
 import Container from '@mui/material/Container'
 import DynamicForm from 'src/views/form/DynamicForm'
 import { DynamicFormType } from 'src/types/ComponentsTypes'
-import AuthContext, { AuthContextType } from 'src/context/user/user'
+import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
 import { useRouter } from 'next/router'
 
 // ** Styled Components
@@ -163,7 +163,7 @@ const RegisterPage = () => {
                 fields={dynamicFormFields}
                 formData={formData}
                 handleSubmitForm={handleRegister}
-                vaildationSchema={RegisterValidationSchema}
+                validationSchema={RegisterValidationSchema}
                 spacing={4}
               />
               <div style={{ marginTop: '3rem' }}>

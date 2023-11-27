@@ -1,3 +1,5 @@
+import { forwardRef, useEffect, useImperativeHandle, useState } from 'react'
+
 import {
   FormControl,
   FormLabel,
@@ -7,37 +9,32 @@ import {
   Radio,
   RadioGroup,
   Select,
-  Switch,
   MenuItem,
   TextField,
   InputLabel,
-  styled,
-  SelectChangeEvent,
   IconButton,
   InputAdornment,
   OutlinedInput,
   Divider,
-  Typography,
   Chip
 } from '@mui/material'
-import { ChangeEvent, forwardRef, useEffect, useImperativeHandle, useState } from 'react'
-import { TextValidator, ValidatorForm } from 'react-material-ui-form-validator'
-import { DynamicFormType } from '../../types/ComponentsTypes'
-import PhoneInput from './fieldElements/PhoneInput'
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import zhTW from 'date-fns/locale/zh-TW'
-import { format } from 'date-fns'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
 import { ObjectSchema } from 'yup'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
 import EyeOutline from 'mdi-material-ui/EyeOutline'
+
+import * as Yup from 'yup'
+
 import { ShowPasswordType } from 'src/types/AuthTypes'
+import { DynamicFormType } from '../../types/ComponentsTypes'
 
 interface DynamicFormProps {
   fields: DynamicFormType[]
-  vaildationSchema: ObjectSchema<any>
+  validationSchema: ObjectSchema<any>
   formData: Record<string, any>
   handleSubmitForm: (formData: object) => Promise<void>
   disabled?: boolean
@@ -45,15 +42,18 @@ interface DynamicFormProps {
 }
 
 const DynamicForm = forwardRef<any, DynamicFormProps>(
-  ({ fields, vaildationSchema, formData, handleSubmitForm, disabled = false, spacing = 6 }, ref) => {
+  ({ fields, validationSchema, formData, handleSubmitForm, disabled = false, spacing = 6 }, ref) => {
     const [showPassword, setShowPassword] = useState<ShowPasswordType>({
       password: false,
       confirmPassword: false
     })
 
     // ** 驗證
+    if (formData.password) {
+      formData.confirmPassword = formData.password
+    }
     const formOptions = {
-      resolver: yupResolver(vaildationSchema),
+      resolver: yupResolver(validationSchema),
       defaultValues: formData || null
     }
 
@@ -76,6 +76,22 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
 
       switch (fieldFactor.fieldType) {
         case 'text':
+          element = (
+            <TextField
+              {...register(fieldFactor.name)}
+              onBlur={() => trigger(fieldFactor.name)}
+              label={fieldFactor.label}
+              type={fieldFactor.fieldType}
+              variant='outlined'
+              sx={{ ...fieldFactor.sx }}
+              minRows={fieldFactor.minRows}
+              multiline={!!fieldFactor.minRows}
+              disabled={disabled}
+              fullWidth
+            />
+          )
+          break
+        case 'number':
           element = (
             <TextField
               {...register(fieldFactor.name)}
@@ -126,7 +142,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
                     </IconButton>
                   </InputAdornment>
                 }
-                sx={{ ...fieldFactor.sx }}
               />
             </FormControl>
           )

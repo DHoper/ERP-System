@@ -1,11 +1,9 @@
-import { GridColDef, GridValueGetterParams } from '@mui/x-data-grid'
+import { GridColDef } from '@mui/x-data-grid'
 import DataTable from '../../views/dataTable/dataTable'
-import UserData from './userFakeData'
 import { Chip, IconButton } from '@mui/material'
 import CircleIcon from '@mui/icons-material/Circle'
 import ManageAccountsIcon from '@mui/icons-material/ManageAccounts'
 import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
 import Link from 'next/link'
 
 const columns: GridColDef[] = [

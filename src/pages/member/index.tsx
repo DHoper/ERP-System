@@ -1,11 +1,11 @@
-import { GridColDef, GridValueGetterParams } from '@mui/x-data-grid'
+import { GridColDef } from '@mui/x-data-grid'
 import DataTable from '../../views/dataTable/dataTable'
-import UserData from './userFakeData'
-import { Chip, IconButton } from '@mui/material'
+import { Button, CardHeader, Chip, IconButton, Stack, Typography } from '@mui/material'
 import CircleIcon from '@mui/icons-material/Circle'
 import EditIcon from '@mui/icons-material/Edit'
 import GroupIcon from '@mui/icons-material/Group'
 import DeleteIcon from '@mui/icons-material/Delete'
+import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import Link from 'next/link'
 
 const columns: GridColDef[] = [
@@ -28,7 +28,7 @@ const columns: GridColDef[] = [
   },
   {
     field: 'username',
-    headerName: '用戶名',
+    headerName: '會員名稱',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -37,7 +37,7 @@ const columns: GridColDef[] = [
   },
   {
     field: 'department',
-    headerName: '部門',
+    headerName: '身分別',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -99,6 +99,10 @@ const columns: GridColDef[] = [
             <EditIcon color='info' />
           </IconButton>
         </Link>
+
+        <IconButton aria-label='edit'>
+          <DeleteIcon color='error' />
+        </IconButton>
       </div>
     )
   }
@@ -189,6 +193,23 @@ const rows = [
 const UserTable = () => {
   return (
     <>
+      <Stack direction={'row'} alignItems={'center'} justifyContent={'space-between'}>
+        <CardHeader
+          title={
+            <Typography variant='h5' fontWeight='bold'>
+              會員管理
+            </Typography>
+          }
+        />
+        <Stack sx={{ paddingRight: 4 }}>
+          <Link passHref href={`/member/information/new`}>
+            <Button variant='contained' startIcon={<PersonAddIcon />}>
+              新增會員
+            </Button>
+          </Link>
+        </Stack>
+      </Stack>
+
       <DataTable tableName='會員管理' rows={rows} columns={columns} icon={GroupIcon} />
     </>
   )

@@ -33,7 +33,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Other Imports
 import FooterIllustrationsV1 from 'src/views/pages/auth/FooterIllustration'
-import AuthContext, { AuthContextType } from 'src/context/user/user'
+import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as Yup from 'yup'

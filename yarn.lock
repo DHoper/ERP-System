@@ -3506,6 +3506,11 @@ parse-json@^5.0.0:
     json-parse-even-better-errors "^2.3.0"
     lines-and-columns "^1.1.6"
 
+password-generator-ts@^1.0.18:
+  version "1.0.18"
+  resolved "https://registry.yarnpkg.com/password-generator-ts/-/password-generator-ts-1.0.18.tgz#e960c6b4b333b584b5aa0f5a64ce9e4b411d459e"
+  integrity sha512-1EkcvMmFCOz0xElPAW4Nd9VvlUzWGiqDmB5GCBH+rjbDR2dEr+gvaxZDPVxCcB/N5wkWDZUQgMA6xpaImp1EKQ==
+
 path-browserify@1.0.1:
   version "1.0.1"
   resolved "https://registry.yarnpkg.com/path-browserify/-/path-browserify-1.0.1.tgz#d98454a9c3753d5790860f16f68867b9e46be1fd"
@@ -4591,6 +4596,11 @@ undici-types@~5.26.4:
   version "5.26.5"
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-5.26.5.tgz#bcd539893d00b56e964fd2657a4866b221a65617"
   integrity sha512-JlCMO+ehdEIKqlFxk6IfVoAUVmgz7cU7zD/h9XZ0qzeosSHmUJVOzSQvvYSYWXkFXC+IfLKSIffhv0sVZup6pA==
+
+unique-username-generator@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/unique-username-generator/-/unique-username-generator-1.2.0.tgz#fc080da4863dcbec7bdf9f09ce3ed62605892487"
+  integrity sha512-aQB5mNOZGeZqQWku15xZeTaD0spV48GmlSmNrabYrx/5DcNDNYgSiwY2cQ0TglkO7Raz+VCUTCERe+CRZf7OLg==
 
 unpipe@1.0.0:
   version "1.0.0"

@@ -22,7 +22,7 @@ import themeOptions from './ThemeOptions'
 // ** Global Styles
 import GlobalStyling from './globalStyles'
 import { useRouter } from 'next/router'
-import AuthContext, { AuthContextType } from 'src/context/user/user'
+import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
 import { getWithExpiry } from 'src/utils/utils'
 
 interface Props {

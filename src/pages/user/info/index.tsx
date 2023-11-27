@@ -18,10 +18,9 @@ import TabSecurity from './components/TabSecurity'
 
 // ** Third Party Styles Imports
 import 'react-datepicker/dist/react-datepicker.css'
-import { ClassNames, useTheme } from '@emotion/react'
-import { formatBirthDate } from 'src/utils/format'
+import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
-import AuthContext, { AuthContextType } from 'src/context/user/user'
+import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
 import { UserDataType } from 'src/types/UserType'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
@@ -61,7 +60,7 @@ const UserManagement = () => {
 
   // ** State
   const [value, setValue] = useState<string>('account')
-  const [isNotVertify, setIsNotVertify] = useState<boolean>(false)
+  const [isNotVerify, setIsNotVerify] = useState<boolean>(false)
   const [reSendEmail, setReSendEmail] = useState<boolean>(false)
   const [userData, setUserData] = useState<UserDataType | null>(null)
 
@@ -86,7 +85,7 @@ const UserManagement = () => {
         返回
       </StyledButton>
       {userData && (
-        <Card sx={{ backgroundColor: isNotVertify ? '#fafafa' : null }}>
+        <Card sx={{ backgroundColor: isNotVerify ? '#fafafa' : null }}>
           <TabContext value={value}>
             <TabList
               onChange={handleChange}
@@ -108,7 +107,7 @@ const UserManagement = () => {
               <Tab
                 value='security'
                 sx={{ flex: { xs: 1, xl: 'unset' } }}
-                disabled={isNotVertify}
+                disabled={isNotVerify}
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <LockOpenOutline />
@@ -119,7 +118,7 @@ const UserManagement = () => {
               <Tab
                 value='info'
                 sx={{ flex: { xs: 1, xl: 'unset' } }}
-                disabled={isNotVertify}
+                disabled={isNotVerify}
                 label={
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <InformationOutline />
@@ -128,7 +127,7 @@ const UserManagement = () => {
                 }
               />
             </TabList>
-            {isNotVertify && (
+            {isNotVerify && (
               <Paper
                 square
                 elevation={1}
@@ -160,7 +159,7 @@ const UserManagement = () => {
             )}
 
             <TabPanel sx={{ p: 8 }} value='account'>
-              <TabAccount userData={userData} disabled={isNotVertify} />
+              <TabAccount userData={userData} disabled={isNotVerify} />
             </TabPanel>
             <TabPanel sx={{ p: 8 }} value='security'>
               <TabSecurity currentPassword={userData.password} />

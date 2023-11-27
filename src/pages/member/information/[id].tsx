@@ -1,16 +1,18 @@
 // ** React Imports
-import { useState, useEffect, useRef, useContext } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { useRouter } from 'next/router'
 
 import { Grid, CardContent, Button, Stack, Card, styled } from '@mui/material'
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace'
 
-// ** Icons Imports
+import { generatePassword, IPasswordConfig } from 'password-generator-ts'
+import { generateUsername } from 'unique-username-generator'
+
 import DynamicForm from 'src/views/form/DynamicForm'
 import AvatarImage from 'src/views/form/fieldElements/AvatarImage'
 import { DynamicFormType } from 'src/types/ComponentsTypes'
-import { UserAccountDataType, UserAccountVaildationSchema, UserDataType } from 'src/types/UserType'
-import AuthContext, { AuthContextType } from 'src/context/user/user'
-import { useRouter } from 'next/router'
+import { requestCreate, requestGet } from 'src/api/member/member'
+import { MemberDataType, MemberValidationSchema } from 'src/types/MemberType'
 
 const StyledButton = styled(Button)({
   backgroundColor: 'white',
@@ -29,6 +31,7 @@ const dynamicFormFields: DynamicFormType[] = [
     label: '基本資訊',
     fullWidth: true
   },
+
   {
     name: 'nickname',
     fieldType: 'text',
@@ -66,12 +69,6 @@ const dynamicFormFields: DynamicFormType[] = [
     fullWidth: false
   },
   {
-    name: 'country',
-    label: '國籍',
-    fieldType: 'text',
-    fullWidth: false
-  },
-  {
     name: 'languages',
     label: '語言',
     fieldType: 'select',
@@ -83,7 +80,7 @@ const dynamicFormFields: DynamicFormType[] = [
     ]
   },
   {
-    name: 'lineToken',
+    name: 'line_token',
     fieldType: 'text',
     label: 'Line Token',
     fullWidth: false
@@ -124,15 +121,21 @@ const dynamicFormFields: DynamicFormType[] = [
     fullWidth: true
   },
   {
-    name: 'membername',
+    name: 'account',
     fieldType: 'text',
-    label: '暱稱',
+    label: '帳戶名',
     fullWidth: false
   },
   {
     name: 'password',
     fieldType: 'password',
     label: '密碼',
+    fullWidth: false
+  },
+  {
+    name: 'confirmPassword',
+    fieldType: 'password',
+    label: '密碼確認',
     fullWidth: false
   },
   {
@@ -157,14 +160,40 @@ const dynamicFormFields: DynamicFormType[] = [
   }
 ]
 
+const length = 8
+
+const config: IPasswordConfig = {
+  lowercases: true,
+  uppercases: true,
+  symbols: false,
+  numbers: true
+}
+
 const MemberInformation = () => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
-  const [formData, setFormData] = useState({})
+  const [formData, setFormData] = useState<MemberDataType>({
+    head_portrait: '',
+    account: generateUsername(),
+    nickname: '',
+    password: generatePassword(length, config),
+    email: '',
+    phone: '',
+    address: '',
+    title: '',
+    gender: 0,
+    birthDate: '',
+    intro: '',
+    languages: 0,
+    line_token: '',
+    member_group_id: '',
+    isActive: 1,
+    role: 0
+  })
   const [avatarUrl, setAvatarUrl] = useState<string>('')
-  const [avatarBlob, setAvatarBlob] = useState<Blob>()
+  const [avatarHexString, setAvatarHexString] = useState<string>()
 
   const router = useRouter()
-  const { id } = router.query
+  const { id } = Array.isArray(router.query) ? router.query[0] : router.query
 
   const dynamicFormRef = useRef(null)
 
@@ -178,27 +207,76 @@ const MemberInformation = () => {
     dynamicFormRef.current.resetForm()
   }
 
-  const authContext = useContext<AuthContextType>(AuthContext)
+  const handleSubmit = async (formData: MemberDataType) => {
+    let birthDate
+    if (formData.birthDate) {
+      birthDate = new Date(formData.birthDate)
+      const year = birthDate.getFullYear()
+      const month = String(birthDate.getMonth() + 1).padStart(2, '0')
+      const day = String(birthDate.getDate()).padStart(2, '0')
 
-  const handleSubmit = async (formData: UserAccountDataType) => {
-    const userUpdateData: UserAccountDataType = { ...userData, ...formData, head_portrait: avatarBlob! }
-    console.log(userUpdateData, avatarBlob, 77)
-    const { update } = authContext
-    // await update(userData.member_id, userUpdateData)
+      birthDate = `${year}-${month}-${day}`
+    }
+
+    const userUpdateData: MemberDataType = {
+      ...formData,
+      head_portrait: avatarHexString!,
+      birthDate
+    }
+    await requestCreate(userUpdateData)
   }
 
-  const handleAvatarChange = (url: string, blob: Blob) => {
+  const handleAvatarChange = (url: string, hexString: string) => {
     setAvatarUrl(url)
-    setAvatarBlob(blob)
+    setAvatarHexString(hexString)
   }
 
   useEffect(() => {
     setFormField(dynamicFormFields)
 
-    // const { username, nickname, email, isActive, title } = userData
-    // setFormData({ username, nickname, email, isActive, title })
-    setFormData(userData)
-  }, [])
+    if (!id) return
+    if (id !== 'new') {
+      ;(async () => {
+        const responseData = await requestGet(id)
+        const {
+          head_portrait,
+          account,
+          nickname,
+          password,
+          email,
+          phone,
+          address,
+          title,
+          gender,
+          birthDate,
+          intro,
+          languages,
+          line_token,
+          member_group_id,
+          isActive,
+          role
+        } = responseData
+        setFormData({
+          head_portrait,
+          account,
+          nickname,
+          password,
+          email,
+          phone,
+          address,
+          title,
+          gender,
+          birthDate,
+          intro,
+          languages,
+          line_token,
+          member_group_id,
+          isActive,
+          role
+        })
+      })()
+    }
+  }, [id])
 
   return (
     <>
@@ -227,7 +305,7 @@ const MemberInformation = () => {
                   fields={formField}
                   formData={formData}
                   handleSubmitForm={handleSubmit}
-                  vaildationSchema={UserAccountVaildationSchema}
+                  validationSchema={MemberValidationSchema}
                 />
               )}
             </Grid>
@@ -253,25 +331,3 @@ const MemberInformation = () => {
 }
 
 export default MemberInformation
-
-const userData = {
-  avatarImgUrl: 'https://example.com/avatar1.jpg',
-  membername: 'user1',
-  nickname: 'John Doe',
-  password: 'password1',
-  email: 'john.doe@example.com',
-  phone: '123-456-7890',
-  address: '123 Main St, Cityville',
-  title: 'Software Engineer',
-  gender: 0,
-  role: 1,
-  birthDate: '1990-01-01',
-  intro: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
-  country: 'United States',
-  languages: 1,
-  lineToken: 'line-token-1',
-  isActive: 1,
-  member_group_id: 24145554,
-  createdAt: '2022-01-01T12:00:00Z',
-  updatedAt: '2022-11-23T08:30:00Z'
-}

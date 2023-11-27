@@ -29,7 +29,7 @@ import 'react-perfect-scrollbar/dist/css/styles.css'
 
 // ** Global css styles
 import '../../styles/globals.css'
-import AuthContext, { AuthContextType, AuthProvider } from 'src/context/user/user'
+import AuthContext, { AuthContextType, AuthProvider } from 'src/context/Auth/AuthContext'
 import { useContext, useEffect } from 'react'
 import { getWithExpiry } from 'src/utils/utils'
 
@@ -60,7 +60,6 @@ const App = (props: ExtendedAppProps) => {
 
   // Variables
   const getLayout = Component.getLayout ?? (page => <UserLayout>{page}</UserLayout>)
-
 
   return (
     <CacheProvider value={emotionCache}>

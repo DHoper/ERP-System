@@ -85,7 +85,7 @@ export type AuthContextType = {
   tokenLogin: (accountId: string, token: string) => Promise<void>
   logout: () => void
   register: (formData: object) => Promise<void>
-  update: (formData: UserDataType) => Promise<void>
+  update: (formData: UserDataType, token: string) => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -189,10 +189,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       Authorization: 'Bearer' + token
     }
 
-    console.log(formData.head_portrait)
 
     const loginUrl = `${WEB_API_URL}/accounts/${account_id}`
-    console.log(formData, loginUrl)
 
     try {
       const response = await axios.patch(loginUrl, formData, { headers })

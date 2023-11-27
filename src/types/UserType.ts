@@ -3,7 +3,7 @@ import * as Yup from 'yup'
 export interface UserDataType {
   account_id: string
   user_id?: string
-  head_portrait: Blob
+  head_portrait: string
   username: string
   nickname: string
   password: string
@@ -21,7 +21,7 @@ export interface UserDataType {
 
 export interface UserAccountDataType {
   user_id?: string
-  head_portrait: Blob
+  head_portrait: string
   username: string
   nickname: string
   email: string
@@ -41,7 +41,7 @@ export interface UserInfoDataType {
   languages: number[]
 }
 
-export const UserVaildationSchema = Yup.object().shape({
+export const UserValidationSchema = Yup.object().shape({
   _id: Yup.string(),
   head_portrait: Yup.string().required('請提供頭像圖片的 URL'),
   username: Yup.string().required('請提供用戶名稱'),
@@ -59,7 +59,7 @@ export const UserVaildationSchema = Yup.object().shape({
   isActive: Yup.number().required('請指定用戶是否啟用')
 })
 
-export const UserAccountVaildationSchema = Yup.object().shape({
+export const UserAccountValidationSchema = Yup.object().shape({
   username: Yup.string().max(20, '帳戶名稱不可超過 20 個字符').required('請提供用戶名稱'),
   nickname: Yup.string().nullable(),
   email: Yup.string().email('請提供有效的郵箱地址').required('請提供郵箱地址'),
@@ -67,7 +67,7 @@ export const UserAccountVaildationSchema = Yup.object().shape({
   isActive: Yup.number().required('請指定用戶是否啟用')
 })
 
-export const UserInfoVaildationSchema = Yup.object().shape({
+export const UserInfoValidationSchema = Yup.object().shape({
   intro: Yup.string().required('請提供自我介紹'),
   birthDate: Yup.string().required('請提供生日'),
   phone: Yup.string().required('請提供電話號碼'),
