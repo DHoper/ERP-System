@@ -10,6 +10,7 @@ import { DynamicFormType } from 'src/types/ComponentsTypes'
 import { UserAccountDataType, UserAccountValidationSchema, UserDataType } from 'src/types/UserType'
 import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
 import { getWithExpiry } from 'src/utils/utils'
+import { hexStringToBlobUrl } from 'src/utils/convert'
 
 const dynamicFormFields: DynamicFormType[] = [
   {
@@ -48,18 +49,7 @@ const dynamicFormFields: DynamicFormType[] = [
   }
 ]
 
-function hexStringToBlobUrl(hexString: string) {
-  function blobToUrl(blob: Blob) {
-    return URL.createObjectURL(blob)
-  }
 
-  const arrayBuffer = new Uint8Array(hexString.match(/.{1,2}/g).map(byte => parseInt(byte, 16))).buffer
-  const blob = new Blob([arrayBuffer])
-
-  const blobUrl = blobToUrl(blob)
-
-  return blobUrl
-}
 
 const TabAccount = ({ userData, disabled }: { userData: UserDataType; disabled: boolean }) => {
   const asciiArray = userData.head_portrait
@@ -79,11 +69,11 @@ const TabAccount = ({ userData, disabled }: { userData: UserDataType; disabled: 
   // }
 
   // console.log(resultString, 55)
-  const rr = hexStringToBlobUrl(asciiArray)
+  const hexUrl = hexStringToBlobUrl(asciiArray)
 
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState({})
-  const [avatarUrl, setAvatarUrl] = useState<string>(rr)
+  const [avatarUrl, setAvatarUrl] = useState<string>(hexUrl)
   const [avatarHexString, setAvatarHexString] = useState<string>()
 
   const dynamicFormRef = useRef(null)

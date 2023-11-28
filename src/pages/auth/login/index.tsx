@@ -106,7 +106,7 @@ const LoginPage = () => {
     setLoading(true)
 
     try {
-      login(formData.username, formData.password, remember)
+      await login(formData.username, formData.password, remember)
 
       router.push('/')
     } catch (e) {

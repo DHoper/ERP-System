@@ -16,7 +16,8 @@ import {
   InputAdornment,
   OutlinedInput,
   Divider,
-  Chip
+  Chip,
+  Button
 } from '@mui/material'
 import DatePicker, { registerLocale, setDefaultLocale } from 'react-datepicker'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
@@ -52,17 +53,40 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
     if (formData.password) {
       formData.confirmPassword = formData.password
     }
+
+    const fieldsToRemove = Object.keys(validationSchema.fields).filter(fieldName => !formData.hasOwnProperty(fieldName))
+
+    const strippedValidationSchema = fieldsToRemove.reduce((schema, fieldName) => {
+      return schema.clone().omit(fieldName as unknown as (string | number | symbol)[])
+    }, validationSchema)
+
+    console.log(formData, strippedValidationSchema.fields, 55)
+
     const formOptions = {
-      resolver: yupResolver(validationSchema),
-      defaultValues: formData || null
+      resolver: yupResolver(strippedValidationSchema),
+      defaultValues: formData || null,
+      context: {
+        currentAccount: formData || null
+      }
     }
 
-    const { register, handleSubmit, reset, trigger, control, formState } = useForm(formOptions)
+    const { register, handleSubmit, reset, trigger, control, formState, getValues } = useForm(formOptions)
     const { errors } = formState
 
     useImperativeHandle(ref, () => ({
       submitForm: async () => {
-        await handleSubmit(handleSubmitForm)()
+        console.log(getValues(), 12)
+
+        if (formState.isValid) {
+          try {
+            const response = await handleSubmit(handleSubmitForm)()
+            console.log('DynamicForm 表單提交成功:', response)
+          } catch (error) {
+            console.error('DynamicForm 表單提交失敗:', error)
+          }
+        } else {
+          console.log('表单验证未通过，错误信息:', formState.errors)
+        }
       },
       resetForm: () => {
         reset()
@@ -86,22 +110,9 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
               sx={{ ...fieldFactor.sx }}
               minRows={fieldFactor.minRows}
               multiline={!!fieldFactor.minRows}
-              disabled={disabled}
-              fullWidth
-            />
-          )
-          break
-        case 'number':
-          element = (
-            <TextField
-              {...register(fieldFactor.name)}
-              onBlur={() => trigger(fieldFactor.name)}
-              label={fieldFactor.label}
-              type={fieldFactor.fieldType}
-              variant='outlined'
-              sx={{ ...fieldFactor.sx }}
-              minRows={fieldFactor.minRows}
-              multiline={!!fieldFactor.minRows}
+              InputProps={{
+                inputProps: fieldFactor.inputProps
+              }}
               disabled={disabled}
               fullWidth
             />
@@ -306,6 +317,32 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
         //     />
         //   )
         //   break
+        case 'button':
+          element = (
+            <div>
+              <Button
+                variant='contained'
+                color={
+                  fieldFactor.color as
+                    | 'error'
+                    | 'primary'
+                    | 'secondary'
+                    | 'info'
+                    | 'success'
+                    | 'warning'
+                    | 'inherit'
+                    | undefined
+                }
+                startIcon={fieldFactor.startIcon}
+                onClick={fieldFactor.action}
+                fullWidth
+                sx={{ ...fieldFactor.sx }}
+              >
+                {fieldFactor.label}
+              </Button>
+            </div>
+          )
+          break
         case 'divider':
           element = (
             <Divider sx={{ ...fieldFactor.sx, marginTop: 12 }} textAlign='center'>
@@ -328,7 +365,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
                 position: 'relative'
               }}
             >
-              {' '}
               <div
                 className='invalid-feedback'
                 style={{

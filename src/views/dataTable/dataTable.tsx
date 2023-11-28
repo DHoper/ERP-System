@@ -1,14 +1,16 @@
 import { CardContent, Paper } from '@mui/material'
-import { DataGrid, GridColDef, GridRowsProp, GridToolbar } from '@mui/x-data-grid'
+import { DataGrid, GridColDef, GridRowId, GridRowsProp, GridToolbar, GridSortModel } from '@mui/x-data-grid'
 import { ReactNode } from 'react'
 
 interface DataTableProps {
   rows: GridRowsProp[]
   columns: GridColDef[]
+  sortModel: GridSortModel
+  getId: (row: any) => GridRowId //暫用any
   tableName?: string
   icon?: ReactNode
 }
-export default function DataTable({ rows, columns }: DataTableProps) {
+export default function DataTable({ rows, columns, sortModel, getId }: DataTableProps) {
   return (
     <>
       <CardContent>
@@ -22,7 +24,9 @@ export default function DataTable({ rows, columns }: DataTableProps) {
                 paginationModel: { page: 0, pageSize: 10 }
               }
             }}
+            getRowId={getId}
             disableColumnMenu={true}
+            sortModel={sortModel}
             pageSizeOptions={[5, 10]}
             checkboxSelection={false}
             disableDensitySelector

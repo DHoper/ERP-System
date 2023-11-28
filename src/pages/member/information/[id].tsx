@@ -2,17 +2,19 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 
-import { Grid, CardContent, Button, Stack, Card, styled } from '@mui/material'
+import { Grid, CardContent, Button, Stack, Card, styled, Collapse, CardActions, useTheme } from '@mui/material'
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace'
+import WarningIcon from '@mui/icons-material/Warning'
 
-import { generatePassword, IPasswordConfig } from 'password-generator-ts'
+import { generatePassword } from 'password-generator-ts'
 import { generateUsername } from 'unique-username-generator'
 
 import DynamicForm from 'src/views/form/DynamicForm'
 import AvatarImage from 'src/views/form/fieldElements/AvatarImage'
 import { DynamicFormType } from 'src/types/ComponentsTypes'
-import { requestCreate, requestGet } from 'src/api/member/member'
+import { requestCheckAccountName, requestCreate, requestDelete, requestGet, requestUpdate } from 'src/api/member/member'
 import { MemberDataType, MemberValidationSchema } from 'src/types/MemberType'
+import ConfirmationDialog from 'src/views/message/confirmDialog'
 
 const StyledButton = styled(Button)({
   backgroundColor: 'white',
@@ -127,6 +129,16 @@ const dynamicFormFields: DynamicFormType[] = [
     fullWidth: false
   },
   {
+    name: 'role',
+    label: '身分別',
+    fieldType: 'select',
+    fullWidth: false,
+    options: [
+      { value: 0, label: '家長' },
+      { value: 1, label: '學員' }
+    ]
+  },
+  {
     name: 'password',
     fieldType: 'password',
     label: '密碼',
@@ -137,16 +149,6 @@ const dynamicFormFields: DynamicFormType[] = [
     fieldType: 'password',
     label: '密碼確認',
     fullWidth: false
-  },
-  {
-    name: 'role',
-    label: '權限',
-    fieldType: 'select',
-    fullWidth: false,
-    options: [
-      { value: 0, label: '家長' },
-      { value: 1, label: '學員' }
-    ]
   },
   {
     name: 'isActive',
@@ -160,40 +162,35 @@ const dynamicFormFields: DynamicFormType[] = [
   }
 ]
 
-const length = 8
+enum PageModel {
+  Create = 'Create',
+  Update = 'Update'
+}
 
-const config: IPasswordConfig = {
-  lowercases: true,
-  uppercases: true,
-  symbols: false,
-  numbers: true
+const generateLegalAccountName = async () => {
+  const accountName = generateUsername()
+  const isLegal = await requestCheckAccountName(accountName)
+  if (!isLegal) {
+    generateLegalAccountName()
+  } else {
+    return accountName
+  }
 }
 
 const MemberInformation = () => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
-  const [formData, setFormData] = useState<MemberDataType>({
-    head_portrait: '',
-    account: generateUsername(),
-    nickname: '',
-    password: generatePassword(length, config),
-    email: '',
-    phone: '',
-    address: '',
-    title: '',
-    gender: 0,
-    birthDate: '',
-    intro: '',
-    languages: 0,
-    line_token: '',
-    member_group_id: '',
-    isActive: 1,
-    role: 0
-  })
+  const [formData, setFormData] = useState<MemberDataType>()
   const [avatarUrl, setAvatarUrl] = useState<string>('')
   const [avatarHexString, setAvatarHexString] = useState<string>()
+  const [showAdvanceSetting, setShowAdvanceSetting] = useState<boolean>(false)
+
+  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false)
 
   const router = useRouter()
+  const theme = useTheme()
+
   const { id } = Array.isArray(router.query) ? router.query[0] : router.query
+  const pageModel = id === 'new' ? PageModel.Create : PageModel.Update
 
   const dynamicFormRef = useRef(null)
 
@@ -218,12 +215,26 @@ const MemberInformation = () => {
       birthDate = `${year}-${month}-${day}`
     }
 
-    const userUpdateData: MemberDataType = {
+    const memberRepData: MemberDataType = {
       ...formData,
       head_portrait: avatarHexString!,
       birthDate
     }
-    await requestCreate(userUpdateData)
+
+    for (const key in memberRepData) {
+      if (memberRepData[key] === null || memberRepData[key] === undefined || memberRepData[key] === '') {
+        delete memberRepData[key]
+      }
+    }
+    delete memberRepData.confirmPassword
+
+    if (pageModel === PageModel.Create) {
+      await requestCreate(memberRepData)
+    } else {
+      await requestUpdate(id, memberRepData)
+    }
+
+    router.push('/member')
   }
 
   const handleAvatarChange = (url: string, hexString: string) => {
@@ -231,18 +242,59 @@ const MemberInformation = () => {
     setAvatarHexString(hexString)
   }
 
-  useEffect(() => {
-    setFormField(dynamicFormFields)
+  const handlePasswordReset = async () => {
+    const newRandomPassword = generatePassword(8, {
+      lowercases: true,
+      uppercases: true,
+      symbols: false,
+      numbers: true
+    })
+    try {
+      await requestUpdate(id, { password: newRandomPassword })
+    } catch (error) {
+      console.error('重設密碼時發生錯誤:', error)
+    }
+  }
 
+  const handleAccountDelete = async () => {
+    handleConfirmationOpen()
+    try {
+      const responseData = await requestDelete(id)
+
+      router.push('/member')
+    } catch (error) {
+      console.error('刪除帳戶時發生錯誤:', error)
+    }
+  }
+
+  const handleConfirmationOpen = () => {
+    setIsConfirmationOpen(true)
+  }
+
+  const handleConfirmationClose = () => {
+    setIsConfirmationOpen(false)
+  }
+
+  const handleConfirm = () => {
+    console.log('Confirmed!')
+
+    handleConfirmationClose()
+  }
+
+  useEffect(() => {
     if (!id) return
-    if (id !== 'new') {
+    if (pageModel === PageModel.Update) {
+      const updatedDynamicFormFields = dynamicFormFields.filter(
+        field => field.name !== 'password' && field.name !== 'confirmPassword'
+      )
+
+      setFormField(updatedDynamicFormFields)
       ;(async () => {
         const responseData = await requestGet(id)
         const {
           head_portrait,
           account,
           nickname,
-          password,
           email,
           phone,
           address,
@@ -260,7 +312,6 @@ const MemberInformation = () => {
           head_portrait,
           account,
           nickname,
-          password,
           email,
           phone,
           address,
@@ -275,8 +326,36 @@ const MemberInformation = () => {
           role
         })
       })()
+    } else {
+      ;(async () => {
+        setFormField(dynamicFormFields)
+        const accountName = await generateLegalAccountName()
+        setFormData({
+          head_portrait: '',
+          account: accountName || '',
+          nickname: '',
+          password: generatePassword(8, {
+            lowercases: true,
+            uppercases: true,
+            symbols: false,
+            numbers: true
+          }),
+          email: '',
+          phone: '',
+          address: '',
+          title: '',
+          gender: 0,
+          birthDate: '',
+          intro: '',
+          languages: 0,
+          line_token: '',
+          member_group_id: '',
+          isActive: 1,
+          role: 0
+        })
+      })()
     }
-  }, [id])
+  }, [id, pageModel])
 
   return (
     <>
@@ -287,19 +366,19 @@ const MemberInformation = () => {
       >
         返回
       </StyledButton>
-      <Card sx={{ padding: 16, paddingBottom: 8 }}>
-        <CardContent>
-          <Grid container spacing={0}>
-            <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 10 }}>
-              <AvatarImage
-                sx={{ justifyContent: 'center' }}
-                direction='column'
-                avatarImgUrl={avatarUrl}
-                onChange={handleAvatarChange}
-              />
-            </Grid>
-            <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
-              {formField && (
+      {formField && formData && (
+        <Card sx={{ padding: 0, paddingBottom: 0 }}>
+          <CardContent>
+            <Grid container spacing={0}>
+              <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 10 }}>
+                <AvatarImage
+                  sx={{ justifyContent: 'center' }}
+                  direction='column'
+                  avatarImgUrl={avatarUrl}
+                  onChange={handleAvatarChange}
+                />
+              </Grid>
+              <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
                 <DynamicForm
                   ref={dynamicFormRef}
                   fields={formField}
@@ -307,25 +386,57 @@ const MemberInformation = () => {
                   handleSubmitForm={handleSubmit}
                   validationSchema={MemberValidationSchema}
                 />
-              )}
-            </Grid>
+              </Grid>
 
-            <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 2 }}>
-              <Stack direction={'row'}>
-                <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
-                  保存
+              <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 2 }}>
+                <Stack direction={'row'}>
+                  <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
+                    保存
+                  </Button>
+                  <Button type='reset' variant='outlined' color='secondary' onClick={handleChildRest}>
+                    重置
+                  </Button>
+                </Stack>
+              </Grid>
+            </Grid>
+          </CardContent>
+
+          {pageModel === PageModel.Update && (
+            <CardActions disableSpacing sx={{ padding: 0 }}>
+              <Button
+                variant='contained'
+                color='error'
+                startIcon={<WarningIcon />}
+                sx={{ borderRadius: 0, width: '100%' }}
+                onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+              >
+                危險操作
+              </Button>
+            </CardActions>
+          )}
+
+          <Collapse
+            in={showAdvanceSetting}
+            timeout='auto'
+            easing={'ease'}
+            unmountOnExit
+            sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
+          >
+            <CardContent>
+              <Stack direction={'row'} spacing={8} justifyContent={'center'}>
+                <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
+                  重設密碼
                 </Button>
-                <Button type='reset' variant='outlined' color='secondary' onClick={handleChildRest}>
-                  重置
-                </Button>
-                <Button type='button' variant='contained' color='error' sx={{ marginLeft: 'auto', display: 'block' }}>
+                <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
                   註銷此帳戶
                 </Button>
               </Stack>
-            </Grid>
-          </Grid>
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Collapse>
+        </Card>
+      )}
+
+      <ConfirmationDialog open={isConfirmationOpen} onClose={handleConfirmationClose} onConfirm={handleConfirm} />
     </>
   )
 }
