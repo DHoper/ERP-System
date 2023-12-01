@@ -22,7 +22,7 @@ import LogoutVariant from 'mdi-material-ui/LogoutVariant'
 import AccountOutline from 'mdi-material-ui/AccountOutline'
 import MessageOutline from 'mdi-material-ui/MessageOutline'
 import HelpCircleOutline from 'mdi-material-ui/HelpCircleOutline'
-import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
+import AuthContext, { AuthContextType, useAuthContext } from 'src/context/Auth/AuthContext'
 
 // ** Styled Components
 const BadgeContentSpan = styled('span')(({ theme }) => ({
@@ -51,8 +51,8 @@ const UserDropdown = () => {
     setAnchorEl(null)
   }
 
-  const authContext = useContext<AuthContextType>(AuthContext)
-  const { logout, accountId } = authContext
+  const useAuth = useAuthContext()
+  const { logout } = useAuth
 
   const useLogout = () => {
     logout()
@@ -115,7 +115,7 @@ const UserDropdown = () => {
           </Box>
         </Box>
         <Divider sx={{ mt: 0, mb: 1 }} />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose(`/user/info/${accountId}`)}>
+        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose(`/users/user/current`)}>
           <Box sx={styles}>
             <AccountOutline sx={{ marginRight: 2 }} />
             個人資料

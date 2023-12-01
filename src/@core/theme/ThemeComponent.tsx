@@ -64,6 +64,8 @@ const ThemeComponent = (props: Props) => {
     if (!isLoginPage && !isRegisterPage && !accountId) {
       router.push('/auth/login')
     } else if (!accountData) {
+      console.log(121);
+      
       ;(async () => await tokenLogin())()
     }
   }, [isLoginPage, isRegisterPage, router, tokenLogin, accountData, accountId])

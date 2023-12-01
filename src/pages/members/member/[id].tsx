@@ -13,7 +13,8 @@ import {
   CardActions,
   useTheme,
   Snackbar,
-  IconButton
+  IconButton,
+  Alert
 } from '@mui/material'
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace'
 import GppMaybeIcon from '@mui/icons-material/GppMaybe'
@@ -29,6 +30,7 @@ import { requestCheckAccountName, requestCreate, requestDelete, requestGet, requ
 import { MemberDataType, MemberValidationSchema } from 'src/types/MemberTypes'
 import { aa } from '../membersData'
 import useConfirm from 'src/views/message/WarningConfirmDialog'
+import { useSnackbarContext } from 'src/context/SnackbarContext'
 
 const StyledButton = styled(Button)({
   backgroundColor: 'white',
@@ -186,7 +188,6 @@ const MemberInformation = () => {
   const [formData, setFormData] = useState<MemberDataType>()
   const [avatarUrl, setAvatarUrl] = useState<string>('')
   const [avatarHexString, setAvatarHexString] = useState<string>()
-  const [showAdvanceSetting, setShowAdvanceSetting] = useState<boolean>(false)
   const [accountName, setAccountName] = useState<string>(generateUsername())
   const [accountData, setAccountData] = useState<MemberDataType>()
 
@@ -194,7 +195,7 @@ const MemberInformation = () => {
   const theme = useTheme()
 
   const { id } = Array.isArray(router.query) ? router.query[0] : router.query
-  const pageModel = id === 'new' ? PageModel.Create : PageModel.Update
+  const pageModel = id && id === 'new' ? PageModel.Create : PageModel.Update
 
   const dynamicFormRef = useRef(null)
 
@@ -247,37 +248,26 @@ const MemberInformation = () => {
   }
 
   // * 安全性操作
+  const [showAdvanceSetting, setShowAdvanceSetting] = useState<boolean>(false)
   const [getConfirmation, ConfirmDialog] = useConfirm()
 
-  const [open, setOpen] = useState(false)
-  const handleClose = () => {
-    setOpen(prev => !prev)
-  }
-  const action = ( // Snackbar
-    <>
-      <Button color='secondary' size='small' onClick={handleClose}>
-        UNDO
-      </Button>
-      <IconButton size='small' aria-label='close' color='inherit' onClick={handleClose}>
-        <CloseIcon fontSize='small' />
-      </IconButton>
-    </>
-  )
+  const useSnackbar = useSnackbarContext()
 
   const handleAccountDelete = async () => {
     const status = await getConfirmation('是否確認註銷該用戶', '刪除動作經確認後將無法撤回')
 
     if (status) {
       await requestDelete(id)
+
       router.push('/members')
+      useSnackbar.showSnackbar(`用戶 Id(${id}) 已註銷`, 6000)
     } else {
-      console.log('使用者取消刪除帳戶')
+      useSnackbar.showSnackbar('動作已取消', 6000)
     }
   }
 
   const handlePasswordReset = async () => {
     const status = await getConfirmation('是否確認註銷該用戶', '刪除動作經確認後將無法撤回')
-
     if (status) {
       const newRandomPassword = generatePassword(8, {
         lowercases: true,
@@ -285,11 +275,15 @@ const MemberInformation = () => {
         symbols: false,
         numbers: true
       })
+      try {
+        await requestUpdate(id, { password: newRandomPassword })
 
-      await requestUpdate(id, { password: newRandomPassword })
-      router.push('/members')
+        useSnackbar.showSnackbar(`密碼重設成功，新密碼為: ${newRandomPassword}`, null)
+      } catch (error) {
+        console.error('執行 requestUpdate 時發生錯誤:', error)
+      }
     } else {
-      console.log('使用者取消重製密碼')
+      useSnackbar.showSnackbar('動作已取消', 6000)
     }
   }
 
@@ -297,7 +291,6 @@ const MemberInformation = () => {
     const checkAndSetAccountName = async () => {
       try {
         const isLegal = requestCheckAccountName(accountName)
-        // const isLegal = true
         if (!isLegal) {
           setAccountName(generateUsername())
         }
@@ -396,82 +389,83 @@ const MemberInformation = () => {
 
   return (
     <>
-      <StyledButton
-        variant='contained'
-        startIcon={<KeyboardBackspaceIcon fontSize='medium' />}
-        onClick={() => router.back()}
-      >
-        返回
-      </StyledButton>
       {formField && formData && (
-        <Card sx={{ padding: 8, paddingBottom: 0 }}>
-          <CardContent>
-            <Grid container spacing={0}>
-              <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 10 }}>
-                <AvatarImage
-                  sx={{ justifyContent: 'center' }}
-                  direction='column'
-                  avatarImgUrl={avatarUrl ? avatarUrl : ''}
-                  onChange={handleAvatarChange}
-                />
-              </Grid>
-              <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
-                <DynamicForm
-                  ref={dynamicFormRef}
-                  fields={formField}
-                  formData={formData}
-                  handleSubmitForm={handleSubmit}
-                  validationSchema={MemberValidationSchema}
-                />
-              </Grid>
-
-              <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 2 }}>
-                <Stack direction={'row'}>
-                  <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
-                    保存
-                  </Button>
-                  <Button type='reset' variant='outlined' color='secondary' onClick={handleChildRest}>
-                    重置
-                  </Button>
-                </Stack>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      )}
-      {formField && formData && pageModel === PageModel.Update && (
-        <CardActions disableSpacing sx={{ padding: 0 }}>
-          <Button
+        <>
+          <StyledButton
             variant='contained'
-            color='error'
-            startIcon={<GppMaybeIcon />}
-            sx={{ borderRadius: 0, width: '100%' }}
-            onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+            startIcon={<KeyboardBackspaceIcon fontSize='medium' />}
+            onClick={() => router.back()}
           >
-            安全性設定
-          </Button>
-        </CardActions>
+            返回
+          </StyledButton>
+          <Card sx={{ padding: 8, paddingBottom: 0 }}>
+            <CardContent>
+              <Grid container spacing={0}>
+                <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 10 }}>
+                  <AvatarImage
+                    sx={{ justifyContent: 'center' }}
+                    direction='column'
+                    avatarImgUrl={avatarUrl ? avatarUrl : ''}
+                    onChange={handleAvatarChange}
+                  />
+                </Grid>
+                <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
+                  <DynamicForm
+                    ref={dynamicFormRef}
+                    fields={formField}
+                    formData={formData}
+                    handleSubmitForm={handleSubmit}
+                    validationSchema={MemberValidationSchema}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 2 }}>
+                  <Stack direction={'row'}>
+                    <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
+                      保存
+                    </Button>
+                    <Button type='reset' variant='outlined' color='secondary' onClick={handleChildRest}>
+                      重置
+                    </Button>
+                  </Stack>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+          {pageModel === PageModel.Update && (
+            <CardActions disableSpacing sx={{ padding: 0 }}>
+              <Button
+                variant='contained'
+                color='error'
+                startIcon={<GppMaybeIcon />}
+                sx={{ borderRadius: 0, width: '100%' }}
+                onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+              >
+                安全性設定
+              </Button>
+            </CardActions>
+          )}
+          <Collapse
+            in={showAdvanceSetting}
+            timeout='auto'
+            easing={'ease'}
+            unmountOnExit
+            sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
+          >
+            <CardContent>
+              <Stack direction={'row'} spacing={8} justifyContent={'center'}>
+                <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
+                  重設密碼
+                </Button>
+                <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
+                  註銷此帳戶
+                </Button>
+              </Stack>
+            </CardContent>
+          </Collapse>
+          <ConfirmDialog /> {/* TS Error */}
+        </>
       )}
-      <Collapse
-        in={showAdvanceSetting}
-        timeout='auto'
-        easing={'ease'}
-        unmountOnExit
-        sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
-      >
-        <CardContent>
-          <Stack direction={'row'} spacing={8} justifyContent={'center'}>
-            <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
-              重設密碼
-            </Button>
-            <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
-              註銷此帳戶
-            </Button>
-          </Stack>
-        </CardContent>
-      </Collapse>
-      <ConfirmDialog /> {/* TS Error */}
-      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message='Note archived' action={action} />
     </>
   )
 }

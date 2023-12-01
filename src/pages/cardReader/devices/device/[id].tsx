@@ -23,6 +23,7 @@ import { DynamicFormType } from 'src/types/ComponentsTypes'
 import { requestCheckName, requestCreate, requestDelete, requestGet, requestUpdate } from 'src/api/cardReader/device'
 import { DeviceDataType, DeviceValidationSchema } from 'src/types/CardReaderTypes'
 import useConfirm from 'src/views/message/WarningConfirmDialog'
+import { useSnackbarContext } from 'src/context/SnackbarContext'
 
 const StyledButton = styled(Button)({
   backgroundColor: 'white',
@@ -122,32 +123,22 @@ const MemberInformation = () => {
     router.push('/cardReader/devices')
   }
 
+  const useSnackbar = useSnackbarContext()
+
   // * 安全性操作
   const [getConfirmation, ConfirmDialog] = useConfirm()
-
-  const [open, setOpen] = useState(false)
-  const handleClose = () => {
-    setOpen(prev => !prev)
-  }
-  const action = ( // Snackbar
-    <>
-      <Button color='secondary' size='small' onClick={handleClose}>
-        UNDO
-      </Button>
-      <IconButton size='small' aria-label='close' color='inherit' onClick={handleClose}>
-        <CloseIcon fontSize='small' />
-      </IconButton>
-    </>
-  )
 
   const handleAccountDelete = async () => {
     const status = await getConfirmation('是否確認註銷該裝置', '刪除動作經確認後將無法撤回')
 
     if (status) {
-      await requestDelete(id)
-      router.push('/cardReader/devices')
+      const responseData = await requestDelete(id)
+      console.log(responseData)
+
+      router.push('/cardReader/devices/')
+      useSnackbar.showSnackbar(`裝置 Id(${id}) 已註銷`, 6000)
     } else {
-      console.log('使用者取消刪除帳戶')
+      useSnackbar.showSnackbar('動作已取消', 6000)
     }
   }
 
@@ -193,71 +184,72 @@ const MemberInformation = () => {
 
   return (
     <>
-      <StyledButton
-        variant='contained'
-        startIcon={<KeyboardBackspaceIcon fontSize='medium' />}
-        onClick={() => router.back()}
-      >
-        返回
-      </StyledButton>
       {formField && formData && (
-        <Card sx={{ paddingX: 8, paddingBottom: 4 }}>
-          <CardContent>
-            <Grid container spacing={0}>
-              <Grid item xs={12} sx={{ marginBottom: 8 }}>
-                <DynamicForm
-                  ref={dynamicFormRef}
-                  fields={formField}
-                  formData={formData}
-                  handleSubmitForm={handleSubmit}
-                  validationSchema={DeviceValidationSchema}
-                />
-              </Grid>
-
-              <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 2 }}>
-                <Stack direction={'row'}>
-                  <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
-                    保存
-                  </Button>
-                  <Button type='reset' variant='outlined' color='secondary' onClick={handleChildRest}>
-                    重置
-                  </Button>
-                </Stack>
-              </Grid>
-            </Grid>
-          </CardContent>
-        </Card>
-      )}
-      {formField && formData && pageModel === PageModel.Update && (
-        <CardActions disableSpacing sx={{ padding: 0 }}>
-          <Button
+        <>
+          <StyledButton
             variant='contained'
-            color='error'
-            startIcon={<GppMaybeIcon />}
-            sx={{ borderRadius: 0, width: '100%' }}
-            onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+            startIcon={<KeyboardBackspaceIcon fontSize='medium' />}
+            onClick={() => router.back()}
           >
-            安全性設定
-          </Button>
-        </CardActions>
+            返回
+          </StyledButton>
+          <Card sx={{ paddingX: 8, paddingBottom: 4 }}>
+            <CardContent>
+              <Grid container spacing={0}>
+                <Grid item xs={12} sx={{ marginBottom: 8 }}>
+                  <DynamicForm
+                    ref={dynamicFormRef}
+                    fields={formField}
+                    formData={formData}
+                    handleSubmitForm={handleSubmit}
+                    validationSchema={DeviceValidationSchema}
+                  />
+                </Grid>
+
+                <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 2 }}>
+                  <Stack direction={'row'}>
+                    <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
+                      保存
+                    </Button>
+                    <Button type='reset' variant='outlined' color='secondary' onClick={handleChildRest}>
+                      重置
+                    </Button>
+                  </Stack>
+                </Grid>
+              </Grid>
+            </CardContent>
+          </Card>
+          {pageModel === PageModel.Update && (
+            <CardActions disableSpacing sx={{ padding: 0 }}>
+              <Button
+                variant='contained'
+                color='error'
+                startIcon={<GppMaybeIcon />}
+                sx={{ borderRadius: 0, width: '100%' }}
+                onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+              >
+                安全性設定
+              </Button>
+            </CardActions>
+          )}
+          <Collapse
+            in={showAdvanceSetting}
+            timeout='auto'
+            easing={'ease'}
+            unmountOnExit
+            sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
+          >
+            <CardContent sx={{ backgroundColor: 'white' }}>
+              <Stack direction={'row'} spacing={8} justifyContent={'center'}>
+                <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
+                  註銷此裝置
+                </Button>
+              </Stack>
+            </CardContent>
+          </Collapse>
+          <ConfirmDialog /> {/* TS Error */}
+        </>
       )}
-      <Collapse
-        in={showAdvanceSetting}
-        timeout='auto'
-        easing={'ease'}
-        unmountOnExit
-        sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
-      >
-        <CardContent sx={{ backgroundColor: 'white' }}>
-          <Stack direction={'row'} spacing={8} justifyContent={'center'}>
-            <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
-              註銷此裝置
-            </Button>
-          </Stack>
-        </CardContent>
-      </Collapse>
-      <ConfirmDialog /> {/* TS Error */}
-      {/* <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message='Note archived' action={action} /> */}
     </>
   )
 }

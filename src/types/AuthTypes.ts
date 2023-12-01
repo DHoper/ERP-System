@@ -13,6 +13,7 @@ export interface RegisterFormType {
 }
 
 export interface ShowPasswordType {
+  currentPassword: boolean
   password: boolean
   confirmPassword: boolean
 }

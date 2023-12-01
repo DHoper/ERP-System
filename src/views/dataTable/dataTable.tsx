@@ -103,9 +103,10 @@ export default function DataTable({ rows, columns, sortModel, getId }: DataTable
                 toolbar: () => (
                   <GridToolbar
                     sx={{
-                      paddingY: '.5rem',
-                      paddingX: '1rem',
-                      '& .MuiButton-root': { fontSize: '.75rem' }
+                      alignItems: 'flex-end', // * optimize 不生效(短暫作用後因不可名狀之原因失效)?
+                      padding: '1rem',
+                      paddingBottom: '.5rem',
+                      '& .MuiButton-root': { fontSize: '.75rem', color: `${theme.palette.secondary.dark}!important` }
                     }}
                   />
                 )

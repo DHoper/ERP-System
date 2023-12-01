@@ -1,4 +1,4 @@
-import { ReactNode, createContext, useEffect, useReducer } from 'react'
+import { ReactNode, createContext, useContext, useEffect, useReducer } from 'react'
 import axios from 'axios'
 import MatxLoading from 'src/@core/components/MatxLoading'
 import { WEB_API_URL } from 'src/utils/constant'
@@ -28,7 +28,8 @@ enum Action {
   LOGOUT = 'LOGOUT',
   INIT = 'INIT',
   REGISTER = 'REGISTER',
-  UPDATE = 'UPDATE'
+  UPDATE = 'UPDATE',
+  CHECKPASSWORD = 'CHECKPASSWORD'
 }
 
 export type ActionType = {
@@ -71,6 +72,10 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
       return { ...state }
     }
 
+    case Action.CHECKPASSWORD: {
+      return { ...state }
+    }
+
     default:
       return state
   }
@@ -86,7 +91,8 @@ export type AuthContextType = {
   tokenLogin: () => Promise<void>
   logout: () => void
   register: (formData: object) => Promise<void>
-  update: (formData: UserDataType, token: string) => Promise<void>
+  update: (formData: UserDataType) => Promise<void>
+  checkPassword: (password: string) => Promise<boolean>
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -109,11 +115,23 @@ const AuthContext = createContext<AuthContextType>({
   },
   update: function (): Promise<void> {
     throw new Error('Function not implemented.')
+  },
+  checkPassword: function (): Promise<boolean> {
+    throw new Error('Function not implemented.')
   }
 })
 
 type AuthProviderProps = {
   children: ReactNode
+}
+
+export const useAuthContext = () => {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error('useAuthContext must be used within a AuthContextProvider')
+  }
+
+  return context
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -153,6 +171,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const tokenLogin = async () => {
+    console.log(212)
+
     const token = getWithExpiry('token')
     const accountId = localStorage.getItem('accountId')
 
@@ -191,8 +211,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: Action.REGISTER })
   }
 
-  const update = async (formData: UserDataType, token: string) => {
+  const update = async (formData: UserDataType) => {
     const { account_id } = formData
+    const token = getWithExpiry('token')
 
     const headers = {
       Authorization: 'Bearer' + token
@@ -206,7 +227,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
       dispatch({ type: Action.REGISTER, payload: { accountData } })
     } catch (error) {
-      console.error(`註冊帳戶時發生錯誤:`, error)
+      console.error(`更新帳戶時發生錯誤:`, error)
     }
   }
 
@@ -216,6 +237,23 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: Action.LOGOUT })
   }
 
+  const checkPassword = async (password: string) => {
+    const loginUrl = WEB_API_URL + '/oauth/login'
+    if (!state.accountData) return false
+    const { username } = state.accountData
+
+    const data = { username, password, grant_type: 'password' }
+    const headers = { 'content-type': 'application/x-www-form-urlencoded' }
+    try {
+      const response = await axios.post(loginUrl, data, { headers })
+
+      return response.data ? true : false
+    } catch (error) {
+      console.error('執行 checkPassword 時發生錯誤:', error)
+    }
+
+    return false
+  }
   useEffect(() => {
     ;(async () => {
       try {
@@ -234,7 +272,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   if (!state.isInitialised) return <MatxLoading />
 
   return (
-    <AuthContext.Provider value={{ ...state, method: 'JWT', login, tokenLogin, logout, register, update }}>
+    <AuthContext.Provider
+      value={{ ...state, method: 'JWT', login, tokenLogin, logout, register, update, checkPassword }}
+    >
       {children}
     </AuthContext.Provider>
   )

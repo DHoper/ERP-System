@@ -7,10 +7,11 @@ import { Grid, CardContent, Button, Stack } from '@mui/material'
 import DynamicForm from 'src/views/form/DynamicForm'
 import AvatarImage from 'src/views/form/fieldElements/AvatarImage'
 import { DynamicFormType } from 'src/types/ComponentsTypes'
-import { UserAccountDataType, UserAccountValidationSchema, UserDataType } from 'src/types/UserTypes'
+import { UserAccountType, UserAccountValidationSchema, UserType } from 'src/types/UserTypes'
 import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
 import { getWithExpiry } from 'src/utils/utils'
 import { hexStringToBlobUrl } from 'src/utils/convert'
+import { requestUpdate } from 'src/api/user/user'
 
 const dynamicFormFields: DynamicFormType[] = [
   {
@@ -49,34 +50,24 @@ const dynamicFormFields: DynamicFormType[] = [
   }
 ]
 
-
-
-const TabAccount = ({ userData, disabled }: { userData: UserDataType; disabled: boolean }) => {
-  const asciiArray = userData.head_portrait
-
-  // function chunkToString(startIndex: number, chunkSize: number) {
-  //   const endIndex = Math.min(startIndex + chunkSize, asciiArray.length)
-  //   const chunk = asciiArray.slice(startIndex, endIndex)
-
-  //   return String.fromCharCode(...chunk)
-  // }
-
-  // const chunkSize = 1000
-  // let resultString = ''
-
-  // for (let i = 0; i < asciiArray.length; i += chunkSize) {
-  //   resultString += chunkToString(i, chunkSize)
-  // }
-
-  // console.log(resultString, 55)
-  const hexUrl = hexStringToBlobUrl(asciiArray)
-
+const TabAccount = ({
+  formData: { account_id, username, nickname, email, isActive, title, head_portrait },
+  disabled
+}: {
+  formData: UserAccountType
+  disabled: boolean
+}) => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState({})
-  const [avatarUrl, setAvatarUrl] = useState<string>(hexUrl)
+  const [avatarUrl, setAvatarUrl] = useState<string>()
   const [avatarHexString, setAvatarHexString] = useState<string>()
 
   const dynamicFormRef = useRef(null)
+
+  if (head_portrait) {
+    const hexUrl = hexStringToBlobUrl(head_portrait)
+    setAvatarUrl(hexUrl)
+  }
 
   const handleChildSubmit = () => {
     if (!dynamicFormRef.current) return
@@ -88,13 +79,14 @@ const TabAccount = ({ userData, disabled }: { userData: UserDataType; disabled: 
     dynamicFormRef.current.resetForm()
   }
 
-  const authContext = useContext<AuthContextType>(AuthContext)
+  const handleSubmit = async (formData: UserAccountType) => {
+    const userUpdateData: UserAccountType = { ...formData, head_portrait: avatarHexString ? avatarHexString : null }
 
-  const handleSubmit = async (formData: UserAccountDataType) => {
-    const token = getWithExpiry('token')
-    const userUpdateData: UserAccountDataType = { ...userData, ...formData, head_portrait: avatarHexString! }
-    const { update } = authContext
-    await update(userUpdateData, token)
+    try {
+      await requestUpdate(account_id!, userUpdateData)
+    } catch (error) {
+      console.error('執行 User requestUpdate 時發生錯誤:', error)
+    }
   }
 
   const handleAvatarChange = (url: string, hexString: string) => {
@@ -106,16 +98,21 @@ const TabAccount = ({ userData, disabled }: { userData: UserDataType; disabled: 
   useEffect(() => {
     setFormField(dynamicFormFields)
 
-    const { username, nickname, email, isActive, title } = userData
-    setFormData({ username, nickname, email, isActive, title })
-  }, [userData])
+    setFormData({
+      username: username || '',
+      nickname: nickname || '',
+      email: email || '',
+      isActive: isActive || '',
+      title: title || ''
+    })
+  }, [email, isActive, nickname, title, username])
 
   return (
     <>
       <CardContent sx={{ backgroundColor: disabled ? '#fafafa' : null }}>
         <Grid container spacing={0}>
           <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 10 }}>
-            <AvatarImage avatarImgUrl={avatarUrl} onChange={handleAvatarChange} disabled={disabled} />
+            <AvatarImage avatarImgUrl={avatarUrl ? avatarUrl : ''} onChange={handleAvatarChange} disabled={disabled} />
           </Grid>
           <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
             {formField && (

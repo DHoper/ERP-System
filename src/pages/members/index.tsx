@@ -129,7 +129,6 @@ const UserTable = () => {
   useEffect(() => {
     ;(async () => {
       const responseData = await requestGetAll()
-      // const responseData = aa  //fakeData
       if (responseData) {
         for (const items of responseData) {
           if (items.head_portrait) {

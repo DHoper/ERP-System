@@ -7,7 +7,7 @@ import Button from '@mui/material/Button'
 import CardContent from '@mui/material/CardContent'
 
 import { DynamicFormType } from 'src/types/ComponentsTypes'
-import { UserDataType, UserInfoDataType, UserInfoValidationSchema } from 'src/types/UserTypes'
+import { UserDataType, UserInfoType, UserInfoValidationSchema } from 'src/types/UserTypes'
 import DynamicForm from 'src/views/form/DynamicForm'
 import { Stack } from '@mui/system'
 

@@ -43,6 +43,7 @@ interface DynamicFormProps {
 const DynamicForm = forwardRef<any, DynamicFormProps>(
   ({ fields, validationSchema, formData, handleSubmitForm, disabled = false, spacing = 6 }, ref) => {
     const [showPassword, setShowPassword] = useState<ShowPasswordType>({
+      currentPassword: false,
       password: false,
       confirmPassword: false
     })
@@ -66,7 +67,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
       }
     }
 
-    const { register, handleSubmit, reset, trigger, getValues, control, formState } = useForm(formOptions)
+    const { register, handleSubmit, reset, trigger, control, formState } = useForm(formOptions)
     const { errors } = formState
 
     useImperativeHandle(ref, () => ({
@@ -119,7 +120,7 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
           )
           break
         case 'password':
-          const handleClickShowPassword = (type: 'password' | 'confirmPassword') => {
+          const handleClickShowPassword = (type: 'password' | 'confirmPassword' | 'currentPassword') => {
             const carrier = { ...showPassword, [type]: !showPassword[type] }
             setShowPassword(carrier)
           }
@@ -128,7 +129,12 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
             event.preventDefault()
           }
 
-          if (fieldFactor.name !== 'password' && fieldFactor.name !== 'confirmPassword') return
+          if (
+            fieldFactor.name !== 'password' &&
+            fieldFactor.name !== 'confirmPassword' &&
+            fieldFactor.name !== 'currentPassword'
+          )
+            return
 
           element = (
             <FormControl fullWidth>

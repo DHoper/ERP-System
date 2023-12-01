@@ -32,6 +32,7 @@ import '../../styles/globals.css'
 import AuthContext, { AuthContextType, AuthProvider } from 'src/context/Auth/AuthContext'
 import { useContext, useEffect } from 'react'
 import { getWithExpiry } from 'src/utils/utils'
+import { SnackbarProvider } from 'src/context/SnackbarContext'
 
 // ** Extend App Props with Emotion
 type ExtendedAppProps = AppProps & {
@@ -77,7 +78,11 @@ const App = (props: ExtendedAppProps) => {
         <AuthProvider>
           <SettingsConsumer>
             {({ settings }) => {
-              return <ThemeComponent settings={settings}>{getLayout(<Component {...pageProps} />)}</ThemeComponent>
+              return (
+                <ThemeComponent settings={settings}>
+                  <SnackbarProvider>{getLayout(<Component {...pageProps} />)}</SnackbarProvider>
+                </ThemeComponent>
+              )
             }}
           </SettingsConsumer>
         </AuthProvider>

@@ -24,7 +24,7 @@ const navigation = (): VerticalNavItemsType => {
     {
       title: '使用者管理',
       icon: AccountCogOutline,
-      path: '/user'
+      path: '/users'
     },
     {
       sectionTitle: '帳戶操作'
