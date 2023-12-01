@@ -1,5 +1,4 @@
 import { GridColDef, GridRenderCellParams, GridSortModel } from '@mui/x-data-grid'
-import DataTable from '../../views/dataTable/dataTable'
 import { Avatar, Button, CardHeader, Chip, IconButton, Stack, Typography } from '@mui/material'
 import CircleIcon from '@mui/icons-material/Circle'
 import EditIcon from '@mui/icons-material/Edit'
@@ -11,6 +10,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { requestGetAll } from 'src/api/member/member'
 import { hexStringToBlobUrl } from 'src/utils/convert'
+import DataTable from 'src/views/dataTable/dataTable'
 
 const roleLabel = ['家長', '學員', '顧客']
 
@@ -107,7 +107,7 @@ const columns: GridColDef[] = [
     sortable: false,
     width: 120,
     renderCell: params => (
-      <Link passHref href={`/member/information/${params.row.member_id}`}>
+      <Link passHref href={`/members/member/${params.row.member_id}`}>
         <IconButton aria-label='edit'>
           <EditIcon color='info' />
         </IconButton>
@@ -128,13 +128,15 @@ const UserTable = () => {
   useEffect(() => {
     ;(async () => {
       const responseData = await requestGetAll()
-
-      for (const items of responseData) {
-        if (items.head_portrait) {
-          items.head_portrait = hexStringToBlobUrl(items.head_portrait)
+      // const responseData = aa  //fakeData
+      if (responseData) {
+        for (const items of responseData) {
+          if (items.head_portrait) {
+            items.head_portrait = hexStringToBlobUrl(items.head_portrait)
+          }
         }
+        setRows(responseData)
       }
-      setRows(responseData)
     })()
   }, [])
 
@@ -152,7 +154,7 @@ const UserTable = () => {
             />
 
             <Stack sx={{ paddingRight: 4 }}>
-              <Link passHref href={`/member/information/new`}>
+              <Link passHref href={`/members/member/new`}>
                 <Button variant='contained' startIcon={<PersonAddIcon />}>
                   新增會員
                 </Button>

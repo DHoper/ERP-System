@@ -5,28 +5,27 @@ export interface MemberDataType {
   member_id?: string
   head_portrait?: string
   account: string
-  nickname?: string
+  nickname?: string | null
   password?: string
   confirmPassword?: string
-  email?: string
-  phone?: string
-  address?: string
-  title?: string
-  gender?: number
-  birthDate?: string
-  intro?: string
-  languages?: number
-  line_token?: string
-  member_group_id?: string
+  email?: string | null
+  phone?: string | null
+  address?: string | null
+  title?: string | null
+  gender?: number | null
+  birthDate?: string | null
+  intro?: string | null
+  languages?: number | null
+  line_token?: string | null
+  member_group_id?: string | number | null
   isActive: number
-  create_time?: string
+  create_date?: string
   update_time?: string
   role?: number
   [key: string]: string | number | Date | undefined | null
 }
 
 export const MemberValidationSchema = Yup.object().shape({
-  _id: Yup.string(),
   head_portrait: Yup.string().nullable(),
   account: Yup.string()
     .required('請提供用戶名稱')
@@ -43,13 +42,13 @@ export const MemberValidationSchema = Yup.object().shape({
     }),
 
   nickname: Yup.string().nullable(),
-  password: Yup.string().required('請提供密碼').strip(),
+  password: Yup.string().required('請提供密碼'),
   confirmPassword: Yup.string()
     .required('請輸入同樣的密碼')
     .oneOf([Yup.ref('password')], '密碼不一致'),
   email: Yup.string()
-    .email('請提供有效的郵箱地址')
     .nullable()
+    .email('請提供有效的郵箱地址')
     .test('is-Repeat', '此信箱已被使用過', async function (value) {
       if (!value) return true
       const { currentAccount } = this.options.context
@@ -72,16 +71,14 @@ export const MemberValidationSchema = Yup.object().shape({
   line_token: Yup.string().nullable(),
   role: Yup.number(),
   member_group_id: Yup.string()
+    .nullable()
     .typeError('請輸入數字')
-    .transform(value => (!value ? null : value)) //dev-c
     .test('is-number', '請輸入正確格式之ID', value => {
-      if (value === null) {
+      if (value === null || value === '') {
         return true
       }
 
       return /^\d+$/.test(value!)
-    })
-    .max(9, 'ID位數錯誤')
-    .nullable(),
+    }),
   isActive: Yup.number().required('請指定用戶是否啟用')
 })

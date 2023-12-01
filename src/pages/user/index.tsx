@@ -90,9 +90,9 @@ const columns: GridColDef[] = [
     align: 'center',
     sortable: false,
     width: 120,
-    renderCell: () => (
+    renderCell: params => (
       <div>
-        <Link passHref href='/user/info'>
+        <Link passHref href={`/user/info/${params.row.account_id}`}>
           <IconButton aria-label='edit'>
             <EditIcon color='info' />
           </IconButton>

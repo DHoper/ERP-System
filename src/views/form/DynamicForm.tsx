@@ -28,8 +28,6 @@ import { ObjectSchema } from 'yup'
 import EyeOffOutline from 'mdi-material-ui/EyeOffOutline'
 import EyeOutline from 'mdi-material-ui/EyeOutline'
 
-import * as Yup from 'yup'
-
 import { ShowPasswordType } from 'src/types/AuthTypes'
 import { DynamicFormType } from '../../types/ComponentsTypes'
 
@@ -60,8 +58,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
       return schema.clone().omit(fieldName as unknown as (string | number | symbol)[])
     }, validationSchema)
 
-    console.log(formData, strippedValidationSchema.fields, 55)
-
     const formOptions = {
       resolver: yupResolver(strippedValidationSchema),
       defaultValues: formData || null,
@@ -70,22 +66,15 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
       }
     }
 
-    const { register, handleSubmit, reset, trigger, control, formState, getValues } = useForm(formOptions)
+    const { register, handleSubmit, reset, trigger, getValues, control, formState } = useForm(formOptions)
     const { errors } = formState
 
     useImperativeHandle(ref, () => ({
       submitForm: async () => {
-        console.log(getValues(), 12)
-
-        if (formState.isValid) {
-          try {
-            const response = await handleSubmit(handleSubmitForm)()
-            console.log('DynamicForm 表單提交成功:', response)
-          } catch (error) {
-            console.error('DynamicForm 表單提交失敗:', error)
-          }
-        } else {
-          console.log('表单验证未通过，错误信息:', formState.errors)
+        try {
+          await handleSubmit(handleSubmitForm)()
+        } catch (error) {
+          console.error('DynamicForm 表單提交失敗:', error)
         }
       },
       resetForm: () => {
@@ -100,21 +89,32 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
 
       switch (fieldFactor.fieldType) {
         case 'text':
+        case 'email':
+        case 'tel':
+        case 'number':
           element = (
-            <TextField
-              {...register(fieldFactor.name)}
-              onBlur={() => trigger(fieldFactor.name)}
-              label={fieldFactor.label}
-              type={fieldFactor.fieldType}
-              variant='outlined'
-              sx={{ ...fieldFactor.sx }}
-              minRows={fieldFactor.minRows}
-              multiline={!!fieldFactor.minRows}
-              InputProps={{
-                inputProps: fieldFactor.inputProps
-              }}
-              disabled={disabled}
-              fullWidth
+            <Controller
+              name={fieldFactor.name}
+              control={control}
+              render={({ field }) => (
+                <TextField
+                  {...field}
+                  onBlur={() => {
+                    trigger(fieldFactor.name)
+                  }}
+                  label={fieldFactor.label}
+                  type={fieldFactor.fieldType}
+                  variant='outlined'
+                  sx={{ ...fieldFactor.sx }}
+                  minRows={fieldFactor.minRows}
+                  multiline={!!fieldFactor.minRows}
+                  InputProps={{
+                    inputProps: fieldFactor.inputProps
+                  }}
+                  disabled={disabled}
+                  fullWidth
+                />
+              )}
             />
           )
           break
@@ -158,15 +158,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
           )
 
           break
-
-        /*   case 'phone':
-        element = (
-          <PhoneInput
-            value={formData[fieldFactor.name]}
-            disabled={disabled}
-          />
-        )
-        break */
         case 'date':
           const CustomInput = forwardRef((props, ref) => (
             <TextField inputRef={ref} label={fieldFactor.label} fullWidth {...props} />
@@ -198,7 +189,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
             </FormControl>
           )
           break
-
         case 'select':
           element = (
             <FormControl fullWidth variant='outlined'>
@@ -273,7 +263,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
             </FormControl>
           )
           break
-
         case 'checkbox':
           element = (
             <FormControl fullWidth>
@@ -302,7 +291,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
             </FormControl>
           )
           break
-
         // case 'switch':
         //   element = (
         //     <FormControlLabel
@@ -347,9 +335,6 @@ const DynamicForm = forwardRef<any, DynamicFormProps>(
           element = (
             <Divider sx={{ ...fieldFactor.sx, marginTop: 12 }} textAlign='center'>
               <Chip color='primary' label={fieldFactor.label} />
-              {/* <Typography variant='h7' fontWeight={'600'}>
-                {fieldFactor.label}
-              </Typography> */}
             </Divider>
           )
           break

@@ -2,9 +2,22 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 
-import { Grid, CardContent, Button, Stack, Card, styled, Collapse, CardActions, useTheme } from '@mui/material'
+import {
+  Grid,
+  CardContent,
+  Button,
+  Stack,
+  Card,
+  styled,
+  Collapse,
+  CardActions,
+  useTheme,
+  Snackbar,
+  IconButton
+} from '@mui/material'
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace'
-import WarningIcon from '@mui/icons-material/Warning'
+import GppMaybeIcon from '@mui/icons-material/GppMaybe'
+import CloseIcon from '@mui/icons-material/Close'
 
 import { generatePassword } from 'password-generator-ts'
 import { generateUsername } from 'unique-username-generator'
@@ -13,8 +26,9 @@ import DynamicForm from 'src/views/form/DynamicForm'
 import AvatarImage from 'src/views/form/fieldElements/AvatarImage'
 import { DynamicFormType } from 'src/types/ComponentsTypes'
 import { requestCheckAccountName, requestCreate, requestDelete, requestGet, requestUpdate } from 'src/api/member/member'
-import { MemberDataType, MemberValidationSchema } from 'src/types/MemberType'
-import ConfirmationDialog from 'src/views/message/confirmDialog'
+import { MemberDataType, MemberValidationSchema } from 'src/types/MemberTypes'
+import { aa } from '../membersData'
+import useConfirm from 'src/views/message/WarningConfirmDialog'
 
 const StyledButton = styled(Button)({
   backgroundColor: 'white',
@@ -42,13 +56,13 @@ const dynamicFormFields: DynamicFormType[] = [
   },
   {
     name: 'email',
-    fieldType: 'text',
+    fieldType: 'email',
     label: '信箱',
     fullWidth: false
   },
   {
     name: 'phone',
-    fieldType: 'text',
+    fieldType: 'tel',
     label: '連絡電話',
     fullWidth: false
   },
@@ -167,24 +181,14 @@ enum PageModel {
   Update = 'Update'
 }
 
-const generateLegalAccountName = async () => {
-  const accountName = generateUsername()
-  const isLegal = await requestCheckAccountName(accountName)
-  if (!isLegal) {
-    generateLegalAccountName()
-  } else {
-    return accountName
-  }
-}
-
 const MemberInformation = () => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState<MemberDataType>()
   const [avatarUrl, setAvatarUrl] = useState<string>('')
   const [avatarHexString, setAvatarHexString] = useState<string>()
   const [showAdvanceSetting, setShowAdvanceSetting] = useState<boolean>(false)
-
-  const [isConfirmationOpen, setIsConfirmationOpen] = useState(false)
+  const [accountName, setAccountName] = useState<string>(generateUsername())
+  const [accountData, setAccountData] = useState<MemberDataType>()
 
   const router = useRouter()
   const theme = useTheme()
@@ -234,7 +238,7 @@ const MemberInformation = () => {
       await requestUpdate(id, memberRepData)
     }
 
-    router.push('/member')
+    router.push('/members')
   }
 
   const handleAvatarChange = (url: string, hexString: string) => {
@@ -242,44 +246,79 @@ const MemberInformation = () => {
     setAvatarHexString(hexString)
   }
 
-  const handlePasswordReset = async () => {
-    const newRandomPassword = generatePassword(8, {
-      lowercases: true,
-      uppercases: true,
-      symbols: false,
-      numbers: true
-    })
-    try {
-      await requestUpdate(id, { password: newRandomPassword })
-    } catch (error) {
-      console.error('重設密碼時發生錯誤:', error)
-    }
+  // * 安全性操作
+  const [getConfirmation, ConfirmDialog] = useConfirm()
+
+  const [open, setOpen] = useState(false)
+  const handleClose = () => {
+    setOpen(prev => !prev)
   }
+  const action = ( // Snackbar
+    <>
+      <Button color='secondary' size='small' onClick={handleClose}>
+        UNDO
+      </Button>
+      <IconButton size='small' aria-label='close' color='inherit' onClick={handleClose}>
+        <CloseIcon fontSize='small' />
+      </IconButton>
+    </>
+  )
 
   const handleAccountDelete = async () => {
-    handleConfirmationOpen()
-    try {
-      const responseData = await requestDelete(id)
+    const status = await getConfirmation('是否確認註銷該用戶', '刪除動作經確認後將無法撤回')
 
-      router.push('/member')
-    } catch (error) {
-      console.error('刪除帳戶時發生錯誤:', error)
+    if (status) {
+      await requestDelete(id)
+      router.push('/members')
+    } else {
+      console.log('使用者取消刪除帳戶')
     }
   }
 
-  const handleConfirmationOpen = () => {
-    setIsConfirmationOpen(true)
+  const handlePasswordReset = async () => {
+    const status = await getConfirmation('是否確認註銷該用戶', '刪除動作經確認後將無法撤回')
+
+    if (status) {
+      const newRandomPassword = generatePassword(8, {
+        lowercases: true,
+        uppercases: true,
+        symbols: false,
+        numbers: true
+      })
+
+      await requestUpdate(id, { password: newRandomPassword })
+      router.push('/members')
+    } else {
+      console.log('使用者取消重製密碼')
+    }
   }
 
-  const handleConfirmationClose = () => {
-    setIsConfirmationOpen(false)
-  }
+  useEffect(() => {
+    const checkAndSetAccountName = async () => {
+      try {
+        const isLegal = requestCheckAccountName(accountName)
+        // const isLegal = true
+        if (!isLegal) {
+          setAccountName(generateUsername())
+        }
+      } catch (error) {
+        console.error('執行 requestCheckAccountName 時發生錯誤:', error)
+      }
+    }
 
-  const handleConfirm = () => {
-    console.log('Confirmed!')
+    checkAndSetAccountName()
+  }, [accountName])
 
-    handleConfirmationClose()
-  }
+  useEffect(() => {
+    if (!id) return
+    if (pageModel === PageModel.Update) {
+      ;(async () => {
+        const responseData = await requestGet(id)
+        if (!responseData) return
+        setAccountData(responseData)
+      })()
+    }
+  }, [id, pageModel])
 
   useEffect(() => {
     if (!id) return
@@ -289,73 +328,71 @@ const MemberInformation = () => {
       )
 
       setFormField(updatedDynamicFormFields)
-      ;(async () => {
-        const responseData = await requestGet(id)
-        const {
-          head_portrait,
-          account,
-          nickname,
-          email,
-          phone,
-          address,
-          title,
-          gender,
-          birthDate,
-          intro,
-          languages,
-          line_token,
-          member_group_id,
-          isActive,
-          role
-        } = responseData
-        setFormData({
-          head_portrait,
-          account,
-          nickname,
-          email,
-          phone,
-          address,
-          title,
-          gender,
-          birthDate,
-          intro,
-          languages,
-          line_token,
-          member_group_id,
-          isActive,
-          role
-        })
-      })()
+
+      // const responseData = aa[4]  // fakeData
+      if (!accountData) return
+      const {
+        head_portrait,
+        account,
+        nickname,
+        email,
+        phone,
+        address,
+        title,
+        gender,
+        birthDate,
+        intro,
+        languages,
+        line_token,
+        member_group_id,
+        isActive,
+        role
+      } = accountData
+      setFormData({
+        head_portrait: head_portrait || '',
+        account: account || '',
+        nickname: nickname || '',
+        email: email || '',
+        phone: phone || '',
+        address: address || '',
+        title: title || '',
+        gender: gender || 0,
+        birthDate: birthDate,
+        intro: intro || '',
+        languages: languages || 0,
+        line_token: line_token || '',
+        member_group_id: member_group_id || '',
+        isActive: isActive || 0,
+        role: role || 0
+      })
     } else {
-      ;(async () => {
-        setFormField(dynamicFormFields)
-        const accountName = await generateLegalAccountName()
-        setFormData({
-          head_portrait: '',
-          account: accountName || '',
-          nickname: '',
-          password: generatePassword(8, {
-            lowercases: true,
-            uppercases: true,
-            symbols: false,
-            numbers: true
-          }),
-          email: '',
-          phone: '',
-          address: '',
-          title: '',
-          gender: 0,
-          birthDate: '',
-          intro: '',
-          languages: 0,
-          line_token: '',
-          member_group_id: '',
-          isActive: 1,
-          role: 0
-        })
-      })()
+      setFormField(dynamicFormFields)
+
+      setFormData({
+        head_portrait: '',
+        account: accountName || '',
+        nickname: '',
+        password: generatePassword(8, {
+          lowercases: true,
+          uppercases: true,
+          symbols: false,
+          numbers: true
+        }),
+        email: '',
+        phone: '',
+        address: '',
+        title: '',
+        gender: 0,
+        birthDate: '',
+        intro: '',
+        languages: 0,
+        line_token: '',
+        member_group_id: '',
+        isActive: 1,
+        role: 0
+      })
     }
-  }, [id, pageModel])
+  }, [accountData, accountName, id, pageModel])
 
   return (
     <>
@@ -367,14 +404,14 @@ const MemberInformation = () => {
         返回
       </StyledButton>
       {formField && formData && (
-        <Card sx={{ padding: 0, paddingBottom: 0 }}>
+        <Card sx={{ padding: 8, paddingBottom: 0 }}>
           <CardContent>
             <Grid container spacing={0}>
               <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 10 }}>
                 <AvatarImage
                   sx={{ justifyContent: 'center' }}
                   direction='column'
-                  avatarImgUrl={avatarUrl}
+                  avatarImgUrl={avatarUrl ? avatarUrl : ''}
                   onChange={handleAvatarChange}
                 />
               </Grid>
@@ -400,43 +437,41 @@ const MemberInformation = () => {
               </Grid>
             </Grid>
           </CardContent>
-
-          {pageModel === PageModel.Update && (
-            <CardActions disableSpacing sx={{ padding: 0 }}>
-              <Button
-                variant='contained'
-                color='error'
-                startIcon={<WarningIcon />}
-                sx={{ borderRadius: 0, width: '100%' }}
-                onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
-              >
-                危險操作
-              </Button>
-            </CardActions>
-          )}
-
-          <Collapse
-            in={showAdvanceSetting}
-            timeout='auto'
-            easing={'ease'}
-            unmountOnExit
-            sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
-          >
-            <CardContent>
-              <Stack direction={'row'} spacing={8} justifyContent={'center'}>
-                <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
-                  重設密碼
-                </Button>
-                <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
-                  註銷此帳戶
-                </Button>
-              </Stack>
-            </CardContent>
-          </Collapse>
         </Card>
       )}
-
-      <ConfirmationDialog open={isConfirmationOpen} onClose={handleConfirmationClose} onConfirm={handleConfirm} />
+      {formField && formData && pageModel === PageModel.Update && (
+        <CardActions disableSpacing sx={{ padding: 0 }}>
+          <Button
+            variant='contained'
+            color='error'
+            startIcon={<GppMaybeIcon />}
+            sx={{ borderRadius: 0, width: '100%' }}
+            onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+          >
+            安全性設定
+          </Button>
+        </CardActions>
+      )}
+      <Collapse
+        in={showAdvanceSetting}
+        timeout='auto'
+        easing={'ease'}
+        unmountOnExit
+        sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
+      >
+        <CardContent>
+          <Stack direction={'row'} spacing={8} justifyContent={'center'}>
+            <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
+              重設密碼
+            </Button>
+            <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
+              註銷此帳戶
+            </Button>
+          </Stack>
+        </CardContent>
+      </Collapse>
+      <ConfirmDialog /> {/* TS Error */}
+      <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message='Note archived' action={action} />
     </>
   )
 }

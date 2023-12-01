@@ -1,14 +1,14 @@
-import { MemberDataType } from 'src/types/MemberTypes'
+import { UserDataType } from 'src/types/UserTypes'
 import { authApiClient } from '../client'
 
 export const ApiConfig = {
-  base: 'members',
-  byID: (id: string) => `members/${id}`,
-  checkAccountName: (accountName: string) => `/members/check_account/${accountName}`,
-  checkEmail: (email: string) => `/members/check_email/${email}`
+  base: 'accounts',
+  byID: (id: string) => `accounts/${id}`,
+  checkAccountName: (accountName: string) => `/accounts/check_account/${accountName}`,
+  checkEmail: (email: string) => `/accounts/check_email/${email}`
 }
 
-export async function requestCreate(formData: MemberDataType) {
+export async function requestCreate(formData: UserDataType) {
   try {
     await authApiClient.post(ApiConfig.base, formData)
   } catch (error) {
@@ -36,7 +36,7 @@ export async function requestGetAll() {
   }
 }
 
-export async function requestUpdate(id: string, formData: MemberDataType | { password: string }) {
+export async function requestUpdate(id: string, formData: UserDataType | { password: string }) {
   try {
     const response = await authApiClient.patch(ApiConfig.byID(id), formData)
 

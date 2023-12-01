@@ -2,8 +2,9 @@ import { ReactNode, createContext, useEffect, useReducer } from 'react'
 import axios from 'axios'
 import MatxLoading from 'src/@core/components/MatxLoading'
 import { WEB_API_URL } from 'src/utils/constant'
-import { setWithExpiry } from 'src/utils/utils'
-import { UserDataType } from 'src/types/UserType'
+import { getWithExpiry, setWithExpiry } from 'src/utils/utils'
+import { UserDataType } from 'src/types/UserTypes'
+import { useRouter } from 'next/router'
 
 interface StateType {
   accountId?: string | null
@@ -82,7 +83,7 @@ export type AuthContextType = {
   isAuthenticated?: boolean
   method: string
   login: (accountId: string, password: string, remember: boolean) => Promise<void>
-  tokenLogin: (accountId: string, token: string) => Promise<void>
+  tokenLogin: () => Promise<void>
   logout: () => void
   register: (formData: object) => Promise<void>
   update: (formData: UserDataType, token: string) => Promise<void>
@@ -118,6 +119,8 @@ type AuthProviderProps = {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer<React.Reducer<StateType, ActionType>>(reducer, initialState)
 
+  const router = useRouter()
+
   const login = async (username: string, password: string, remember = false) => {
     const loginUrl = WEB_API_URL + '/oauth/login'
     const data = { username, password, grant_type: 'password' }
@@ -139,13 +142,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       setWithExpiry('token', token, 3600000) //token 有效1小時
+
+      if (!accountData || !accountId) throw new Error('tokenLogin 取回 undefined')
+
       dispatch({ type: Action.LOGIN, payload: { accountId, accountData } })
+      router.push('/')
     } catch (error) {
       console.error('登陸時發生錯誤:', error)
     }
   }
 
-  const tokenLogin = async (accountId: string, token: string) => {
+  const tokenLogin = async () => {
+    const token = getWithExpiry('token')
+    const accountId = localStorage.getItem('accountId')
+
     const loginUrl = `${WEB_API_URL}/accounts/${accountId}`
 
     const headers = {
@@ -156,7 +166,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const response = await axios.get(loginUrl, { headers })
       const accountData = response.data
 
-      dispatch({ type: Action.TOKENLOGIN, payload: { accountData } })
+      if (!accountData || !accountId) throw new Error('tokenLogin 取回 undefined')
+
+      dispatch({ type: Action.TOKENLOGIN, payload: { accountData, accountId } })
+      if (router.pathname === '/auth/login' || router.pathname === '/auth/register') router.push('/')
     } catch (error) {
       console.error(`Token驗證時發生錯誤:`, error)
     }
@@ -178,17 +191,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: Action.REGISTER })
   }
 
-  const update = async (formData: UserDataType, token) => {
+  const update = async (formData: UserDataType, token: string) => {
     const { account_id } = formData
-    delete formData.account_id
-    delete formData.group_name
-    delete formData.update_time
-    delete formData.create_time
 
     const headers = {
       Authorization: 'Bearer' + token
     }
-
 
     const loginUrl = `${WEB_API_URL}/accounts/${account_id}`
 

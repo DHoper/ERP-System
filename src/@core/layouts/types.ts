@@ -16,6 +16,17 @@ export type NavLink = {
   openInNewTab?: boolean
   icon?: string | string[] | ReactNode
   badgeColor?: 'default' | 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info'
+  subList?: {
+    path?: string
+    title: string
+    action?: string
+    subject?: string
+    disabled?: boolean
+    badgeContent?: string
+    externalLink?: boolean
+    openInNewTab?: boolean
+    badgeColor?: 'default' | 'primary' | 'secondary' | 'success' | 'error' | 'warning' | 'info'
+  }[]
 }
 
 export type NavSectionTitle = {

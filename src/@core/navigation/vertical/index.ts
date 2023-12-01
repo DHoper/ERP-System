@@ -53,7 +53,15 @@ const navigation = (): VerticalNavItemsType => {
     {
       title: '會員管理',
       icon: PeopleIcon,
-      path: '/member'
+      path: '/members'
+    },
+    {
+      title: '讀卡機管理',
+      icon: PeopleIcon,
+      subList: [
+        { title: '裝置管理', path: '/cardReader/devices' },
+        { title: '卡片管理', path: '/cardReader/cards' }
+      ]
     },
     {
       title: 'Typography',

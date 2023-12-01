@@ -52,7 +52,7 @@ const UserDropdown = () => {
   }
 
   const authContext = useContext<AuthContextType>(AuthContext)
-  const { logout } = authContext
+  const { logout, accountId } = authContext
 
   const useLogout = () => {
     logout()
@@ -115,7 +115,7 @@ const UserDropdown = () => {
           </Box>
         </Box>
         <Divider sx={{ mt: 0, mb: 1 }} />
-        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose('/user/info')}>
+        <MenuItem sx={{ p: 0 }} onClick={() => handleDropdownClose(`/user/info/${accountId}`)}>
           <Box sx={styles}>
             <AccountOutline sx={{ marginRight: 2 }} />
             個人資料

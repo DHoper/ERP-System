@@ -21,10 +21,12 @@ import 'react-datepicker/dist/react-datepicker.css'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
-import { UserDataType } from 'src/types/UserType'
+import { UserDataType } from 'src/types/UserTypes'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
+import { requestGet } from 'src/api/user/user'
+import { throws } from 'assert'
 
 const Tab = styled(MuiTab)<TabProps>(({ theme }) => ({
   [theme.breakpoints.down('md')]: {
@@ -68,12 +70,22 @@ const UserManagement = () => {
     setValue(newValue)
   }
 
-  const authContext = useContext<AuthContextType>(AuthContext)
-  const { accountData } = authContext
+  const { id } = Array.isArray(router.query) ? router.query[0] : router.query
 
   useEffect(() => {
-    setUserData(accountData)
-  }, [accountData])
+    ;(async () => {
+      try {
+        const responseData = await requestGet(id)
+        if (!responseData) {
+          throw new Error('User requestGet 取得 undefined')
+        }
+
+        setUserData(responseData)
+      } catch (error) {
+        console.error('執行 User requestGet 時發生錯誤:', error)
+      }
+    })()
+  }, [id])
 
   return (
     <>
