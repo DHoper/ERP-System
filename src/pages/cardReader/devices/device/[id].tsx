@@ -19,7 +19,7 @@ import GppMaybeIcon from '@mui/icons-material/GppMaybe'
 import CloseIcon from '@mui/icons-material/Close'
 
 import DynamicForm from 'src/views/form/DynamicForm'
-import { DynamicFormType } from 'src/types/ComponentsTypes'
+import { DynamicFormComponent, DynamicFormType } from 'src/types/ComponentsTypes'
 import { requestCheckName, requestCreate, requestDelete, requestGet, requestUpdate } from 'src/api/cardReader/device'
 import { DeviceDataType, DeviceValidationSchema } from 'src/types/CardReaderTypes'
 import useConfirm from 'src/views/message/WarningConfirmDialog'
@@ -90,7 +90,8 @@ const MemberInformation = () => {
   const { id } = Array.isArray(router.query) ? router.query[0] : router.query
   const pageModel = id === 'new' ? PageModel.Create : PageModel.Update
 
-  const dynamicFormRef = useRef(null)
+
+  const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
 
   const handleChildSubmit = () => {
     if (!dynamicFormRef.current) return

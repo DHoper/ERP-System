@@ -8,11 +8,11 @@ import CardContent from '@mui/material/CardContent'
 
 // ** Icons Imports
 import DynamicForm from 'src/views/form/DynamicForm'
-import { DynamicFormType } from 'src/types/ComponentsTypes'
-import { GetUserSecurityValidationSchema, UserSecurityType, UserSecurityValidationSchema } from 'src/types/UserTypes'
-import { requestUpdate } from 'src/api/user/user'
+import { DynamicFormComponent, DynamicFormType } from 'src/types/ComponentsTypes'
+import { GetUserSecurityValidationSchema, UserSecurityType } from 'src/types/UserTypes'
 import { Stack } from '@mui/system'
 import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
+import { useSnackbarContext } from 'src/context/SnackbarContext'
 
 const dynamicFormFields: DynamicFormType[] = [
   {
@@ -43,7 +43,9 @@ const TabSecurity = () => {
     confirmPassword: ''
   }
 
-  const dynamicFormRef = useRef(null)
+  const useSnackbar = useSnackbarContext()
+
+  const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
 
   const handleChildSubmit = () => {
     if (!dynamicFormRef.current) return
@@ -63,6 +65,7 @@ const TabSecurity = () => {
     if (!accountId) return
     try {
       await update({ account_id: accountId, password })
+      useSnackbar.showSnackbar('密碼已更新成功', 5000)
     } catch (error) {
       console.error('執行 User requestUpdate 時發生錯誤:', error)
     }

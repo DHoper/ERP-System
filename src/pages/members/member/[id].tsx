@@ -2,33 +2,18 @@
 import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/router'
 
-import {
-  Grid,
-  CardContent,
-  Button,
-  Stack,
-  Card,
-  styled,
-  Collapse,
-  CardActions,
-  useTheme,
-  Snackbar,
-  IconButton,
-  Alert
-} from '@mui/material'
+import { Grid, CardContent, Button, Stack, Card, styled, Collapse, CardActions, useTheme } from '@mui/material'
 import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace'
 import GppMaybeIcon from '@mui/icons-material/GppMaybe'
-import CloseIcon from '@mui/icons-material/Close'
 
 import { generatePassword } from 'password-generator-ts'
 import { generateUsername } from 'unique-username-generator'
 
 import DynamicForm from 'src/views/form/DynamicForm'
 import AvatarImage from 'src/views/form/fieldElements/AvatarImage'
-import { DynamicFormType } from 'src/types/ComponentsTypes'
+import { DynamicFormComponent, DynamicFormType } from 'src/types/ComponentsTypes'
 import { requestCheckAccountName, requestCreate, requestDelete, requestGet, requestUpdate } from 'src/api/member/member'
 import { MemberDataType, MemberValidationSchema } from 'src/types/MemberTypes'
-import { aa } from '../membersData'
 import useConfirm from 'src/views/message/WarningConfirmDialog'
 import { useSnackbarContext } from 'src/context/SnackbarContext'
 
@@ -197,7 +182,7 @@ const MemberInformation = () => {
   const { id } = Array.isArray(router.query) ? router.query[0] : router.query
   const pageModel = id && id === 'new' ? PageModel.Create : PageModel.Update
 
-  const dynamicFormRef = useRef(null)
+  const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
 
   const handleChildSubmit = () => {
     if (!dynamicFormRef.current) return
@@ -249,7 +234,7 @@ const MemberInformation = () => {
 
   // * 安全性操作
   const [showAdvanceSetting, setShowAdvanceSetting] = useState<boolean>(false)
-  const [getConfirmation, ConfirmDialog] = useConfirm()
+  const [getConfirmation, WarningConfirmDialog] = useConfirm()
 
   const useSnackbar = useSnackbarContext()
 
@@ -463,7 +448,7 @@ const MemberInformation = () => {
               </Stack>
             </CardContent>
           </Collapse>
-          <ConfirmDialog /> {/* TS Error */}
+          <WarningConfirmDialog />
         </>
       )}
     </>

@@ -1,23 +1,5 @@
 import { ReactJSXElement } from '@emotion/react/types/jsx-namespace'
-import { InputBaseComponentProps, InputProps } from '@mui/material'
-
-// export interface DynamicFormType {
-//   name: string
-//   fieldType: string
-//   label: string | ReactJSXElement
-//   sx?: object
-//   minRows?: number
-//   inputProps?: InputBaseComponentProps //在此處定義字數限制等原生Input屬性
-//   options?: { value: any; label: string }[]
-//   fullWidth: boolean
-//   props?: {
-//     [key: string]: string
-//   }
-//   value?: any
-//   startIcon?: React.ReactNode
-//   color?: string
-//   action?: () => void
-// }
+import { InputProps } from '@mui/material'
 
 interface BaseFieldProps {
   name: string
@@ -49,3 +31,8 @@ export type DynamicFormType =
       color: string
       action: () => void
     } & BaseFieldProps)
+
+export interface DynamicFormComponent {
+  submitForm: () => void
+  resetForm: () => void
+}

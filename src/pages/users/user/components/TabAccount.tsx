@@ -1,23 +1,28 @@
 // ** React Imports
-import { useState, useEffect, useRef, useContext } from 'react'
+import { useState, useEffect, useRef } from 'react'
 
-import { Grid, CardContent, Button, Stack } from '@mui/material'
+import { Grid, CardContent, Button, Stack, CardActions, Collapse } from '@mui/material'
+import GppMaybeIcon from '@mui/icons-material/GppMaybe'
 
 // ** Icons Imports
 import DynamicForm from 'src/views/form/DynamicForm'
 import AvatarImage from 'src/views/form/fieldElements/AvatarImage'
-import { DynamicFormType } from 'src/types/ComponentsTypes'
-import { UserAccountType, UserAccountValidationSchema, UserType } from 'src/types/UserTypes'
-import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
-import { getWithExpiry } from 'src/utils/utils'
+import { DynamicFormComponent, DynamicFormType } from 'src/types/ComponentsTypes'
+import { UserAccountType, UserAccountValidationSchema, UserDataType } from 'src/types/UserTypes'
+import { useAuthContext } from 'src/context/Auth/AuthContext'
 import { hexStringToBlobUrl } from 'src/utils/convert'
-import { requestUpdate } from 'src/api/user/user'
+import { requestDelete, requestUpdate } from 'src/api/user/user'
+import { useSnackbarContext } from 'src/context/SnackbarContext'
+import { useTheme } from '@emotion/react'
+import useConfirm from 'src/views/message/WarningConfirmDialog'
+import { useRouter } from 'next/router'
+import { generatePassword } from 'password-generator-ts'
 
 const dynamicFormFields: DynamicFormType[] = [
   {
     name: 'username',
     fieldType: 'text',
-    label: '暱稱',
+    label: '帳戶名稱',
     fullWidth: false
   },
   {
@@ -33,6 +38,23 @@ const dynamicFormFields: DynamicFormType[] = [
     fullWidth: false
   },
   {
+    name: 'group_id',
+    label: '部門',
+    fieldType: 'select',
+    fullWidth: false,
+    options: [
+      { value: 0, label: '資訊部' },
+      { value: 1, label: '人事部' },
+      { value: 2, label: '工程部' }
+    ]
+  },
+  {
+    name: 'title',
+    fieldType: 'text',
+    label: '職稱',
+    fullWidth: false
+  },
+  {
     name: 'isActive',
     label: '狀態',
     fieldType: 'select',
@@ -41,33 +63,29 @@ const dynamicFormFields: DynamicFormType[] = [
       { value: 1, label: '活躍' },
       { value: 0, label: '停用' }
     ]
-  },
-  {
-    name: 'title',
-    fieldType: 'text',
-    label: '職稱',
-    fullWidth: false
   }
 ]
 
 const TabAccount = ({
-  formData: { account_id, username, nickname, email, isActive, title, head_portrait },
+  userData,
+  pageModel,
   disabled
 }: {
-  formData: UserAccountType
+  userData: UserDataType
+  pageModel: 'Admin' | 'User'
   disabled: boolean
 }) => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState({})
   const [avatarUrl, setAvatarUrl] = useState<string>()
   const [avatarHexString, setAvatarHexString] = useState<string>()
+  const [id, setId] = useState<string>()
 
-  const dynamicFormRef = useRef(null)
+  const router = useRouter()
+  const theme = useTheme()
+  const useSnackbar = useSnackbarContext()
 
-  if (head_portrait) {
-    const hexUrl = hexStringToBlobUrl(head_portrait)
-    setAvatarUrl(hexUrl)
-  }
+  const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
 
   const handleChildSubmit = () => {
     if (!dynamicFormRef.current) return
@@ -79,11 +97,18 @@ const TabAccount = ({
     dynamicFormRef.current.resetForm()
   }
 
+  const useAuth = useAuthContext()
+  const { update } = useAuth
   const handleSubmit = async (formData: UserAccountType) => {
     const userUpdateData: UserAccountType = { ...formData, head_portrait: avatarHexString ? avatarHexString : null }
 
     try {
-      await requestUpdate(account_id!, userUpdateData)
+      if (pageModel === 'Admin') {
+        await requestUpdate(id!, userUpdateData)
+      } else {
+        await update(userUpdateData)
+      }
+      useSnackbar.showSnackbar('帳戶資料已更新成功', 5000)
     } catch (error) {
       console.error('執行 User requestUpdate 時發生錯誤:', error)
     }
@@ -95,59 +120,147 @@ const TabAccount = ({
     setAvatarHexString(hexString)
   }
 
+  // * 安全性操作
+  const [showAdvanceSetting, setShowAdvanceSetting] = useState<boolean>(false)
+  const [getConfirmation, ConfirmDialog] = useConfirm()
+
+  const handleAccountDelete = async () => {
+    const status = await getConfirmation('是否確認註銷該用戶', '刪除動作經確認後將無法撤回')
+
+    if (status && id) {
+      await requestDelete(id)
+
+      router.push('/users')
+      useSnackbar.showSnackbar(`用戶 Id(${id}) 已註銷`, 5000)
+    } else {
+      useSnackbar.showSnackbar('動作已取消', 5000)
+    }
+  }
+
+  const handlePasswordReset = async () => {
+    if (!id) return
+    const status = await getConfirmation('是否確認註銷該用戶', '刪除動作經確認後將無法撤回')
+    if (status) {
+      const newRandomPassword = generatePassword(8, {
+        lowercases: true,
+        uppercases: true,
+        symbols: false,
+        numbers: true
+      })
+      try {
+        await requestUpdate(id, { password: newRandomPassword })
+
+        useSnackbar.showSnackbar(`密碼重設成功，新密碼為: ${newRandomPassword}`, null)
+      } catch (error) {
+        console.error('執行 requestUpdate 時發生錯誤:', error)
+      }
+    } else {
+      useSnackbar.showSnackbar('動作已取消', 5000)
+    }
+  }
+
   useEffect(() => {
     setFormField(dynamicFormFields)
+
+    if (!('username' in userData)) return
+    const { account_id, username, nickname, email, isActive, group_id, title, head_portrait } =
+      userData as UserAccountType //* TS ERROR
+
+    setId(account_id)
+
+    if (head_portrait) {
+      setAvatarHexString(head_portrait)
+      const hexUrl = hexStringToBlobUrl(head_portrait)
+      setAvatarUrl(hexUrl)
+    } else {
+      setAvatarUrl('')
+    }
 
     setFormData({
       username: username || '',
       nickname: nickname || '',
       email: email || '',
       isActive: isActive || '',
+      group_id: group_id || 0,
       title: title || ''
     })
-  }, [email, isActive, nickname, title, username])
+  }, [userData])
 
   return (
     <>
-      <CardContent sx={{ backgroundColor: disabled ? '#fafafa' : null }}>
-        <Grid container spacing={0}>
-          <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 10 }}>
-            <AvatarImage avatarImgUrl={avatarUrl ? avatarUrl : ''} onChange={handleAvatarChange} disabled={disabled} />
-          </Grid>
-          <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
-            {formField && (
-              <DynamicForm
-                ref={dynamicFormRef}
-                fields={formField}
-                formData={formData}
-                handleSubmitForm={handleSubmit}
-                validationSchema={UserAccountValidationSchema}
-                disabled={disabled}
-              />
-            )}
-          </Grid>
+      {formField && (
+        <>
+          <CardContent sx={{ backgroundColor: disabled ? '#fafafa' : null }}>
+            <Grid container spacing={0}>
+              {avatarUrl !== undefined && (
+                <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 10 }}>
+                  <AvatarImage avatarImgUrl={avatarUrl} onChange={handleAvatarChange} disabled={disabled} />
+                </Grid>
+              )}
 
-          <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 2 }}>
-            <Stack direction={'row'}>
-              <Button variant='contained' disabled={disabled} sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
-                保存
-              </Button>
-              <Button type='reset' disabled={disabled} variant='outlined' color='secondary' onClick={handleChildRest}>
-                重置
-              </Button>
+              <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
+                <DynamicForm
+                  ref={dynamicFormRef}
+                  fields={formField}
+                  formData={formData}
+                  handleSubmitForm={handleSubmit}
+                  validationSchema={UserAccountValidationSchema}
+                  disabled={disabled}
+                />
+              </Grid>
+
+              <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 2 }}>
+                <Stack direction={'row'}>
+                  <Button variant='contained' disabled={disabled} sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
+                    保存
+                  </Button>
+                  <Button
+                    type='reset'
+                    disabled={disabled}
+                    variant='outlined'
+                    color='secondary'
+                    onClick={handleChildRest}
+                  >
+                    重置
+                  </Button>
+                </Stack>
+              </Grid>
+            </Grid>
+          </CardContent>
+          {pageModel === 'Admin' && (
+            <CardActions disableSpacing sx={{ padding: 0 }}>
               <Button
-                type='button'
-                disabled={disabled}
                 variant='contained'
                 color='error'
-                sx={{ marginLeft: 'auto', display: 'block' }}
+                startIcon={<GppMaybeIcon />}
+                sx={{ borderRadius: 0, width: '100%' }}
+                onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
               >
-                註銷此帳戶
+                安全性設定
               </Button>
-            </Stack>
-          </Grid>
-        </Grid>
-      </CardContent>
+            </CardActions>
+          )}
+          <Collapse
+            in={showAdvanceSetting}
+            timeout='auto'
+            easing={'ease'}
+            unmountOnExit
+            sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
+          >
+            <CardContent>
+              <Stack direction={'row'} spacing={8} justifyContent={'center'}>
+                <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
+                  重設密碼
+                </Button>
+                <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
+                  註銷此帳戶
+                </Button>
+              </Stack>
+            </CardContent>
+          </Collapse>
+          <ConfirmDialog /> {/* TS Error */}
+        </>
+      )}
     </>
   )
 }

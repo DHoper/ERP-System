@@ -1,4 +1,4 @@
-import { GridColDef, GridRowId, GridSortModel, GridValidRowModel } from '@mui/x-data-grid'
+import { GridColDef, GridSortModel, GridValidRowModel } from '@mui/x-data-grid'
 import DataTable from '../../views/dataTable/dataTable'
 import { Avatar, Chip, IconButton } from '@mui/material'
 import CircleIcon from '@mui/icons-material/Circle'
@@ -8,6 +8,9 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { requestGetAll } from 'src/api/user/user'
 import { UserDataType } from 'src/types/UserTypes'
+import { hexStringToBlobUrl } from 'src/utils/convert'
+
+const groupType = ['資訊部', '人資部', '工程部']
 
 const columns: GridColDef[] = [
   {
@@ -23,11 +26,17 @@ const columns: GridColDef[] = [
     headerAlign: 'center',
     align: 'center',
     sortable: false,
-    renderCell: params => <Avatar alt="Member's Avatar" sx={{ width: 48, height: 48 }} src={params.row.head_portrait} />
+    renderCell: params => (
+      <Avatar
+        alt="Member's Avatar"
+        sx={{ width: 48, height: 48 }}
+        src={params.row.head_portrait ? hexStringToBlobUrl(params.row.head_portrait) : ''}
+      />
+    )
   },
   {
-    field: 'username',
-    headerName: '用戶名',
+    field: 'nickname',
+    headerName: '姓名',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -35,13 +44,23 @@ const columns: GridColDef[] = [
     disableColumnMenu: true
   },
   {
-    field: 'department',
+    field: 'username',
+    headerName: '帳戶名',
+    flex: 1,
+    headerAlign: 'center',
+    align: 'center',
+    sortable: false,
+    disableColumnMenu: true
+  },
+  {
+    field: 'group_id',
     headerName: '部門',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
     sortable: false,
-    disableColumnMenu: true
+    disableColumnMenu: true,
+    renderCell: params => <span>{groupType[params.row.group_id]}</span>
   },
   {
     field: 'phone',

@@ -6,10 +6,13 @@ import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
 import CardContent from '@mui/material/CardContent'
 
-import { DynamicFormType } from 'src/types/ComponentsTypes'
+import { DynamicFormComponent, DynamicFormType } from 'src/types/ComponentsTypes'
 import { UserDataType, UserInfoType, UserInfoValidationSchema } from 'src/types/UserTypes'
 import DynamicForm from 'src/views/form/DynamicForm'
 import { Stack } from '@mui/system'
+import { requestUpdate } from 'src/api/user/user'
+import { useAuthContext } from 'src/context/Auth/AuthContext'
+import { useSnackbarContext } from 'src/context/SnackbarContext'
 
 const dynamicFormFields: DynamicFormType[] = [
   {
@@ -20,9 +23,9 @@ const dynamicFormFields: DynamicFormType[] = [
     minRows: 2
   },
   {
-    name: 'birthDate',
-    fieldType: 'date',
-    label: '生日',
+    name: 'address',
+    fieldType: 'text',
+    label: '住址',
     fullWidth: false
   },
   {
@@ -32,15 +35,15 @@ const dynamicFormFields: DynamicFormType[] = [
     fullWidth: false
   },
   {
-    name: 'address',
+    name: 'line_token',
     fieldType: 'text',
-    label: '住址',
+    label: 'Line Token',
     fullWidth: false
   },
   {
-    name: 'country',
-    label: '國籍',
-    fieldType: 'text',
+    name: 'birthDate',
+    fieldType: 'date',
+    label: '生日',
     fullWidth: false
   },
   {
@@ -61,22 +64,20 @@ const dynamicFormFields: DynamicFormType[] = [
     fullWidth: false,
     options: [
       { value: 0, label: '男' },
-      { value: 1, label: '女' },
+      { value: 1, label: '女' }
     ]
   }
 ]
 
-const TabInfo = ({ userData }: { userData: UserDataType }) => {
+const TabInfo = ({ userData, pageModel }: { userData: UserDataType; pageModel: 'Admin' | 'User' }) => {
   // ** State
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState({})
+  const [id, setId] = useState<string>()
 
-  const handleChange = (fieldName: string, value: any) => {
-    const formDataCarrier = { ...formData, [fieldName]: value }
-    setFormData(formDataCarrier)
-  }
+  const useSnackbar = useSnackbarContext()
 
-  const dynamicFormRef = useRef(null)
+  const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
 
   const handleChildSubmit = () => {
     if (!dynamicFormRef.current) return
@@ -88,26 +89,56 @@ const TabInfo = ({ userData }: { userData: UserDataType }) => {
     dynamicFormRef.current.resetForm()
   }
 
-  const handleSubmit = async (formData: UserInfoDataType) => {
-    console.log(formData, 1250)
+  const useAuth = useAuthContext()
+  const { update } = useAuth
+
+  const handleSubmit = async (formData: UserInfoType) => {
+    let birthDate
+    if (formData.birthDate) {
+      birthDate = new Date(formData.birthDate)
+      const year = birthDate.getFullYear()
+      const month = String(birthDate.getMonth() + 1).padStart(2, '0')
+      const day = String(birthDate.getDate()).padStart(2, '0')
+
+      birthDate = `${year}-${month}-${day}`
+    }
+    const userUpdateData: UserInfoType = { ...formData, birthDate }
+
+    try {
+      if (pageModel === 'Admin') {
+        await requestUpdate(id!, userUpdateData)
+      } else {
+        await update(userUpdateData)
+      }
+      useSnackbar.showSnackbar('帳戶資料已更新成功', 5000)
+    } catch (error) {
+      console.error('執行 User requestUpdate 時發生錯誤:', error)
+    }
   }
 
   useEffect(() => {
     setFormField(dynamicFormFields)
-    const { intro, birthDate, phone, address, country, languages, gender } = userData
-    setFormData({ intro, birthDate, phone, address, country, languages, gender })
+    const { account_id, intro, birthDate, phone, address, line_token, languages, gender } = userData
+
+    setId(account_id)
+
+    setFormData({
+      intro: intro || '',
+      birthDate: birthDate || '',
+      phone: phone || '',
+      address: address || '',
+      line_token: line_token || '',
+      languages: languages || 0,
+      gender: gender || 0
+    })
   }, [userData])
 
-  // useEffect(() => {
-  //   console.log(formData)
-  // }, [formData])
-
   return (
-    <div>
-      <CardContent>
-        <Grid container spacing={0}>
-          <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
-            {formField && (
+    <>
+      {formField && (
+        <CardContent>
+          <Grid container spacing={0}>
+            <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
               <DynamicForm
                 ref={dynamicFormRef}
                 fields={formField}
@@ -115,22 +146,22 @@ const TabInfo = ({ userData }: { userData: UserDataType }) => {
                 handleSubmitForm={handleSubmit}
                 validationSchema={UserInfoValidationSchema}
               />
-            )}
-          </Grid>
+            </Grid>
 
-          <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 2 }}>
-            <Stack direction={'row'}>
-              <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
-                保存
-              </Button>
-              <Button type='reset' variant='outlined' color='secondary' onClick={handleChildRest}>
-                重置
-              </Button>
-            </Stack>
+            <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 2 }}>
+              <Stack direction={'row'}>
+                <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
+                  保存
+                </Button>
+                <Button type='reset' variant='outlined' color='secondary' onClick={handleChildRest}>
+                  重置
+                </Button>
+              </Stack>
+            </Grid>
           </Grid>
-        </Grid>
-      </CardContent>
-    </div>
+        </CardContent>
+      )}
+    </>
   )
 }
 

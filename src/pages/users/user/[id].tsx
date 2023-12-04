@@ -1,5 +1,5 @@
 // ** React Imports
-import { SyntheticEvent, useContext, useEffect, useState } from 'react'
+import { SyntheticEvent, useEffect, useState } from 'react'
 
 // ** MUI Imports
 import { Paper, Typography, Button, Box, Card, TabProps, styled } from '@mui/material'
@@ -64,41 +64,39 @@ const UserManagement = () => {
   const [value, setValue] = useState<string>('account')
   const [isNotVerify, setIsNotVerify] = useState<boolean>(false)
   const [reSendEmail, setReSendEmail] = useState<boolean>(false)
-  const [formData, setFormData] = useState<UserDataType>()
+  const [userData, setUserData] = useState<UserDataType>()
 
   const handleChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue)
   }
 
   const useAuth = useAuthContext()
-  const { accountId, accountData } = useAuth
+  const { accountData } = useAuth
 
   useEffect(() => {
-  
-    if (!pageModel) return
+    if (!pageModel || !accountData) return
     if (pageModel === 'Admin') {
       ;(async () => {
         try {
           const responseData = await requestGet(id)
 
-
           if (!responseData) {
             throw new Error('User requestGet 取得 undefined')
           }
 
-          setFormData(responseData)
+          setUserData(responseData)
         } catch (error) {
           console.error('執行 User requestGet 時發生錯誤:', error)
         }
       })()
     } else if (pageModel === 'User') {
-      setFormData(accountData)
+      setUserData(accountData)
     }
   }, [accountData, id, pageModel])
 
   return (
     <>
-      {formData && (
+      {userData && (
         <>
           <StyledButton
             variant='contained'
@@ -183,14 +181,14 @@ const UserManagement = () => {
                 </Paper>
               )}
 
-              {/*   <TabPanel sx={{ p: 8 }} value='account'>
-                <TabAccount formData={formData} disabled={isNotVerify} />
-              </TabPanel>  */}
+              <TabPanel sx={{ p: 8 }} value='account'>
+                <TabAccount userData={userData} pageModel={pageModel} disabled={isNotVerify} />
+              </TabPanel>
               <TabPanel sx={{ p: 8 }} value='security'>
-                <TabSecurity id={formData.account_id} />
+                <TabSecurity />
               </TabPanel>
               <TabPanel sx={{ p: 8 }} value='info'>
-                <TabInfo formData={formData} />
+                <TabInfo userData={userData} pageModel={pageModel} />
               </TabPanel>
             </TabContext>
           </Card>

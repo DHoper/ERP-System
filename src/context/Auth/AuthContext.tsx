@@ -9,7 +9,7 @@ import { useRouter } from 'next/router'
 interface StateType {
   accountId?: string | null
   accountData?: UserDataType | null
-  isInitialised?: boolean
+  isInitialized?: boolean
   isAuthenticated?: boolean
 }
 
@@ -18,7 +18,7 @@ const accountId = typeof window !== 'undefined' ? localStorage.getItem('accountI
 const initialState: StateType = {
   accountId: accountId || null,
   accountData: null,
-  isInitialised: true,
+  isInitialized: true,
   isAuthenticated: false
 }
 
@@ -43,7 +43,7 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
       if (!action.payload) return state
       const { isAuthenticated, accountId } = action.payload
 
-      return { ...state, isAuthenticated, isInitialised: true, accountId }
+      return { ...state, isAuthenticated, isInitialized: true, accountId }
     }
 
     case Action.LOGOUT: {
@@ -82,15 +82,15 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
 }
 
 export type AuthContextType = {
-  accountId: string | null
+  accountId: string | null | undefined
   accountData: UserDataType | null
-  isInitialised?: boolean
+  isInitialized?: boolean
   isAuthenticated?: boolean
   method: string
   login: (accountId: string, password: string, remember: boolean) => Promise<void>
   tokenLogin: () => Promise<void>
   logout: () => void
-  register: (formData: object) => Promise<void>
+  register: (formData: UserDataType) => Promise<void>
   update: (formData: UserDataType) => Promise<void>
   checkPassword: (password: string) => Promise<boolean>
 }
@@ -98,7 +98,7 @@ export type AuthContextType = {
 const AuthContext = createContext<AuthContextType>({
   accountId: null,
   accountData: null,
-  isInitialised: false,
+  isInitialized: false,
   isAuthenticated: false,
   method: 'JWT',
   login: function (): Promise<void> {
@@ -171,8 +171,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const tokenLogin = async () => {
-    console.log(212)
-
     const token = getWithExpiry('token')
     const accountId = localStorage.getItem('accountId')
 
@@ -195,7 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const register = async (formData: object) => {
+  const register = async (formData: UserDataType) => {
     const loginUrl = `${WEB_API_URL}/oauth/register`
     const headers = { 'content-type': 'application/x-www-form-urlencoded' }
     const { username, email, password } = formData
@@ -212,14 +210,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   }
 
   const update = async (formData: UserDataType) => {
-    const { account_id } = formData
     const token = getWithExpiry('token')
 
     const headers = {
       Authorization: 'Bearer' + token
     }
 
-    const loginUrl = `${WEB_API_URL}/accounts/${account_id}`
+    const loginUrl = `${WEB_API_URL}/accounts/${state.accountId}`
 
     try {
       const response = await axios.patch(loginUrl, formData, { headers })
@@ -261,6 +258,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         if (accountId) {
           dispatch({ type: Action.INIT, payload: { isAuthenticated: true, accountId, accountData: null } })
+        } else {
+          dispatch({ type: Action.INIT, payload: { isAuthenticated: false, accountId: null, accountData: null } })
         }
       } catch (err) {
         console.error(err)
@@ -269,11 +268,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     })()
   }, [])
 
-  if (!state.isInitialised) return <MatxLoading />
+  if (!state.isInitialized) return <MatxLoading />
 
   return (
     <AuthContext.Provider
-      value={{ ...state, method: 'JWT', login, tokenLogin, logout, register, update, checkPassword }}
+      value={{ ...state, method: 'JWT', login, tokenLogin, logout, register, update, checkPassword }}  //* TS 錯誤
     >
       {children}
     </AuthContext.Provider>

@@ -1,10 +1,8 @@
 import { Dialog, DialogTitle, DialogContent, DialogActions, Button, DialogContentText } from '@mui/material'
-import { display } from '@mui/system'
 import { useState } from 'react'
 
 const createPromise = () => {
   let resolver
-  console.log(555)
 
   return [
     new Promise((resolve, reject) => {

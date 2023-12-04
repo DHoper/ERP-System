@@ -23,7 +23,6 @@ import themeOptions from './ThemeOptions'
 import GlobalStyling from './globalStyles'
 import { useRouter } from 'next/router'
 import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
-import { getWithExpiry } from 'src/utils/utils'
 
 interface Props {
   settings: Settings
@@ -58,14 +57,12 @@ const ThemeComponent = (props: Props) => {
   const authContext = useContext<AuthContextType>(AuthContext)
 
   const { accountId, accountData, tokenLogin } = authContext
-  
 
   useEffect(() => {
     if (!isLoginPage && !isRegisterPage && !accountId) {
       router.push('/auth/login')
     } else if (!accountData) {
-      console.log(121);
-      
+
       ;(async () => await tokenLogin())()
     }
   }, [isLoginPage, isRegisterPage, router, tokenLogin, accountData, accountId])

@@ -40,7 +40,7 @@ import { RegisterFormType, RegisterValidationSchema, ShowPasswordType } from 'sr
 import MailAirplane from './component/MailAirplane'
 import Container from '@mui/material/Container'
 import DynamicForm from 'src/views/form/DynamicForm'
-import { DynamicFormType } from 'src/types/ComponentsTypes'
+import { DynamicFormComponent, DynamicFormType, DynamicFormType } from 'src/types/ComponentsTypes'
 import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
 import { useRouter } from 'next/router'
 
@@ -64,8 +64,8 @@ const RegisterPage = () => {
 
   const router = useRouter()
 
-  // ** Hook
-  const dynamicFormRef = useRef(null)
+
+  const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
 
   const dynamicFormFields: DynamicFormType[] = [
     {

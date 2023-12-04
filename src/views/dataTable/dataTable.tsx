@@ -1,13 +1,4 @@
-import {
-  CardContent,
-  IconButton,
-  Paper,
-  ThemeProvider,
-  Toolbar,
-  Typography,
-  createTheme,
-  useTheme
-} from '@mui/material'
+import { CardContent, Paper, ThemeProvider, createTheme, useTheme } from '@mui/material'
 import {
   DataGrid,
   GridColDef,
@@ -16,48 +7,9 @@ import {
   GridToolbar,
   GridSortModel,
   GridLogicOperator,
-  zhTW,
-  zhCN
+  zhTW
 } from '@mui/x-data-grid'
-import FilterListIcon from '@mui/icons-material/FilterList'
-import AddIcon from '@mui/icons-material/Add'
-import DeleteIcon from '@mui/icons-material/Delete'
 import { ReactNode, useMemo } from 'react'
-
-const MyGridToolbar = () => {
-  const handleFilterClick = () => {
-    // Add your filter logic here...
-    console.log('Filter button clicked')
-  }
-
-  const handleAddClick = () => {
-    // Add your add logic here...
-    console.log('Add button clicked')
-  }
-
-  const handleDeleteClick = () => {
-    // Add your delete logic here...
-    console.log('Delete button clicked')
-  }
-
-  return (
-    <Toolbar>
-      <IconButton onClick={handleFilterClick} aria-label='filter'>
-        <FilterListIcon />
-        <Typography variant='body2'>Filter</Typography>
-      </IconButton>
-      <IconButton onClick={handleAddClick} aria-label='add'>
-        <AddIcon />
-        <Typography variant='body2'>Add</Typography>
-      </IconButton>
-      <IconButton onClick={handleDeleteClick} aria-label='delete'>
-        <DeleteIcon />
-        <Typography variant='body2'>Delete</Typography>
-      </IconButton>
-      {/* Add more buttons as needed... */}
-    </Toolbar>
-  )
-}
 
 interface DataTableProps {
   rows: GridRowsProp[]
@@ -67,13 +19,14 @@ interface DataTableProps {
   tableName?: string
   icon?: ReactNode
 }
+
 export default function DataTable({ rows, columns, sortModel, getId }: DataTableProps) {
   const existingTheme = useTheme()
 
   const theme = useMemo(
     () =>
       createTheme({}, zhTW, existingTheme, {
-        direction: 'ltr'
+        direction: 'rtl'
       }),
     [existingTheme]
   )
@@ -101,9 +54,13 @@ export default function DataTable({ rows, columns, sortModel, getId }: DataTable
               hideFooterSelectedRowCount={true}
               slots={{
                 toolbar: () => (
+                  
+                  // *註 *疑問 toolbar相關之選項需方在最外層(本例為 : 作為<GridToolbar>之屬性)，若要按官方文檔之型式包裹在<GridToolbarExport csvOptions={csvOptions} />裡
+                  //  則 <GridToolbarExport> 需為最外層
                   <GridToolbar
+                    csvOptions={{ utf8WithBom: true, fileName: 'DataTable 資料表' }}
                     sx={{
-                      alignItems: 'flex-end', // * optimize 不生效(短暫作用後因不可名狀之原因失效)?
+                      alignItems: 'flex-end',
                       padding: '1rem',
                       paddingBottom: '.5rem',
                       '& .MuiButton-root': { fontSize: '.75rem', color: `${theme.palette.secondary.dark}!important` }
@@ -112,6 +69,15 @@ export default function DataTable({ rows, columns, sortModel, getId }: DataTable
                 )
               }}
               slotProps={{
+                toolbar: {
+                  csvOptions: {
+                    utf8WithBom: true,
+                    includeHeaders: false,
+                    includeColumnGroupsHeaders: false,
+                    fileName: 'aaa',
+                    fields: ['isActive']
+                  }
+                },
                 filterPanel: {
                   logicOperators: [GridLogicOperator.And],
                   sx: {
