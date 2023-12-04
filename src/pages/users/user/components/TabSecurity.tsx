@@ -13,6 +13,7 @@ import { GetUserSecurityValidationSchema, UserSecurityType } from 'src/types/Use
 import { Stack } from '@mui/system'
 import AuthContext, { AuthContextType } from 'src/context/Auth/AuthContext'
 import { useSnackbarContext } from 'src/context/SnackbarContext'
+import { useRouter } from 'next/router'
 
 const dynamicFormFields: DynamicFormType[] = [
   {
@@ -43,6 +44,7 @@ const TabSecurity = () => {
     confirmPassword: ''
   }
 
+  const router = useRouter()
   const useSnackbar = useSnackbarContext()
 
   const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
@@ -66,6 +68,7 @@ const TabSecurity = () => {
     try {
       await update({ account_id: accountId, password })
       useSnackbar.showSnackbar('密碼已更新成功', 5000)
+      router.reload()
     } catch (error) {
       console.error('執行 User requestUpdate 時發生錯誤:', error)
     }

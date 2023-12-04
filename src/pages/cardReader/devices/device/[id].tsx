@@ -78,7 +78,7 @@ enum PageModel {
   Update = 'Update'
 }
 
-const MemberInformation = () => {
+const Device = () => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState<DeviceDataType>()
   const [deviceData, setDeviceData] = useState<DeviceDataType>()
@@ -89,7 +89,6 @@ const MemberInformation = () => {
 
   const { id } = Array.isArray(router.query) ? router.query[0] : router.query
   const pageModel = id === 'new' ? PageModel.Create : PageModel.Update
-
 
   const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
 
@@ -121,7 +120,13 @@ const MemberInformation = () => {
       await requestUpdate(id, deviceRepData)
     }
 
-    router.push('/cardReader/devices')
+    if (pageModel === PageModel.Update) {
+      useSnackbar.showSnackbar('讀卡機資料更新成功', 5000)
+      router.reload()
+    } else {
+      router.push('/cardReader/devices')
+      useSnackbar.showSnackbar('讀卡機資料建立成功', 5000)
+    }
   }
 
   const useSnackbar = useSnackbarContext()
@@ -207,7 +212,7 @@ const MemberInformation = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 2 }}>
+                <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 8 }}>
                   <Stack direction={'row'}>
                     <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
                       保存
@@ -218,36 +223,36 @@ const MemberInformation = () => {
                   </Stack>
                 </Grid>
               </Grid>
+              {pageModel === PageModel.Update && (
+                <CardActions disableSpacing sx={{ padding: 0 }}>
+                  <Button
+                    variant='contained'
+                    color='error'
+                    startIcon={<GppMaybeIcon />}
+                    sx={{ borderRadius: 0, width: '100%' }}
+                    onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+                  >
+                    安全性設定
+                  </Button>
+                </CardActions>
+              )}
+              <Collapse
+                in={showAdvanceSetting}
+                timeout='auto'
+                easing={'ease'}
+                unmountOnExit
+                sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
+              >
+                <CardContent sx={{ backgroundColor: 'white' }}>
+                  <Stack direction={'row'} spacing={8} justifyContent={'center'}>
+                    <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
+                      註銷此裝置
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Collapse>
             </CardContent>
           </Card>
-          {pageModel === PageModel.Update && (
-            <CardActions disableSpacing sx={{ padding: 0 }}>
-              <Button
-                variant='contained'
-                color='error'
-                startIcon={<GppMaybeIcon />}
-                sx={{ borderRadius: 0, width: '100%' }}
-                onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
-              >
-                安全性設定
-              </Button>
-            </CardActions>
-          )}
-          <Collapse
-            in={showAdvanceSetting}
-            timeout='auto'
-            easing={'ease'}
-            unmountOnExit
-            sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
-          >
-            <CardContent sx={{ backgroundColor: 'white' }}>
-              <Stack direction={'row'} spacing={8} justifyContent={'center'}>
-                <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
-                  註銷此裝置
-                </Button>
-              </Stack>
-            </CardContent>
-          </Collapse>
           <ConfirmDialog /> {/* TS Error */}
         </>
       )}
@@ -255,4 +260,4 @@ const MemberInformation = () => {
   )
 }
 
-export default MemberInformation
+export default Device

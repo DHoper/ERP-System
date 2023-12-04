@@ -15,7 +15,7 @@ import InformationOutline from 'mdi-material-ui/InformationOutline'
 import 'react-datepicker/dist/react-datepicker.css'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
-import { UserDataType } from 'src/types/UserTypes'
+import { UserIntersectionType } from 'src/types/UserTypes'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
@@ -53,7 +53,7 @@ const StyledButton = styled(Button)({
   }
 })
 
-const UserManagement = () => {
+const User = () => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = Array.isArray(router.query) ? router.query[0] : router.query
@@ -64,7 +64,7 @@ const UserManagement = () => {
   const [value, setValue] = useState<string>('account')
   const [isNotVerify, setIsNotVerify] = useState<boolean>(false)
   const [reSendEmail, setReSendEmail] = useState<boolean>(false)
-  const [userData, setUserData] = useState<UserDataType>()
+  const [userData, setUserData] = useState<UserIntersectionType>()
 
   const handleChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue)
@@ -181,13 +181,13 @@ const UserManagement = () => {
                 </Paper>
               )}
 
-              <TabPanel sx={{ p: 8 }} value='account'>
+              <TabPanel sx={{ p: 8, paddingBottom: 0 }} value='account'>
                 <TabAccount userData={userData} pageModel={pageModel} disabled={isNotVerify} />
               </TabPanel>
-              <TabPanel sx={{ p: 8 }} value='security'>
+              <TabPanel sx={{ p: 8, paddingBottom: 0 }} value='security'>
                 <TabSecurity />
               </TabPanel>
-              <TabPanel sx={{ p: 8 }} value='info'>
+              <TabPanel sx={{ p: 8, paddingBottom: 0 }} value='info'>
                 <TabInfo userData={userData} pageModel={pageModel} />
               </TabPanel>
             </TabContext>
@@ -198,4 +198,4 @@ const UserManagement = () => {
   )
 }
 
-export default UserManagement
+export default User

@@ -3,12 +3,12 @@ import axios from 'axios'
 import MatxLoading from 'src/@core/components/MatxLoading'
 import { WEB_API_URL } from 'src/utils/constant'
 import { getWithExpiry, setWithExpiry } from 'src/utils/utils'
-import { UserDataType } from 'src/types/UserTypes'
+import { UserIntersectionType } from 'src/types/UserTypes'
 import { useRouter } from 'next/router'
 
 interface StateType {
   accountId?: string | null
-  accountData?: UserDataType | null
+  accountData?: UserIntersectionType | null
   isInitialized?: boolean
   isAuthenticated?: boolean
 }
@@ -83,15 +83,15 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
 
 export type AuthContextType = {
   accountId: string | null | undefined
-  accountData: UserDataType | null
+  accountData: UserIntersectionType | null
   isInitialized?: boolean
   isAuthenticated?: boolean
   method: string
   login: (accountId: string, password: string, remember: boolean) => Promise<void>
   tokenLogin: () => Promise<void>
   logout: () => void
-  register: (formData: UserDataType) => Promise<void>
-  update: (formData: UserDataType) => Promise<void>
+  register: (formData: UserIntersectionType) => Promise<void>
+  update: (formData: UserIntersectionType) => Promise<void>
   checkPassword: (password: string) => Promise<boolean>
 }
 
@@ -193,7 +193,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }
 
-  const register = async (formData: UserDataType) => {
+  const register = async (formData: UserIntersectionType) => {
     const loginUrl = `${WEB_API_URL}/oauth/register`
     const headers = { 'content-type': 'application/x-www-form-urlencoded' }
     const { username, email, password } = formData
@@ -209,7 +209,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     dispatch({ type: Action.REGISTER })
   }
 
-  const update = async (formData: UserDataType) => {
+  const update = async (formData: UserIntersectionType) => {
     const token = getWithExpiry('token')
 
     const headers = {

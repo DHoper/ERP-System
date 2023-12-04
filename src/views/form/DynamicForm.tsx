@@ -35,7 +35,7 @@ interface DynamicFormProps {
   fields: DynamicFormType[]
   validationSchema: ObjectSchema<any>
   formData: Record<string, any>
-  handleSubmitForm: (formData: any) => Promise<void>  // * 待優化  如何讓表單組件能符合各種形式的form?
+  handleSubmitForm: (formData: any) => Promise<void> // * 待優化  如何讓表單組件能符合各種形式的form?
   disabled?: boolean
   spacing?: number
 }

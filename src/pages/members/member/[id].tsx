@@ -168,7 +168,7 @@ enum PageModel {
   Update = 'Update'
 }
 
-const MemberInformation = () => {
+const Member = () => {
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState<MemberDataType>()
   const [avatarUrl, setAvatarUrl] = useState<string>('')
@@ -224,7 +224,14 @@ const MemberInformation = () => {
       await requestUpdate(id, memberRepData)
     }
 
-    router.push('/members')
+    if (pageModel === PageModel.Update) {
+      // router.reload()
+      router.reload()
+      useSnackbar.showSnackbar('會員資料更新成功', 5000)
+    } else {
+      router.push('/members')
+      useSnackbar.showSnackbar('會員帳戶建立成功', 5000)
+    }
   }
 
   const handleAvatarChange = (url: string, hexString: string) => {
@@ -404,7 +411,7 @@ const MemberInformation = () => {
                   />
                 </Grid>
 
-                <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 2 }}>
+                <Grid item xs={12} sx={{ marginTop: 16, marginBottom: 8 }}>
                   <Stack direction={'row'}>
                     <Button variant='contained' sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
                       保存
@@ -415,39 +422,39 @@ const MemberInformation = () => {
                   </Stack>
                 </Grid>
               </Grid>
+              {pageModel === PageModel.Update && (
+                <CardActions disableSpacing sx={{ padding: 0 }}>
+                  <Button
+                    variant='contained'
+                    color='error'
+                    startIcon={<GppMaybeIcon />}
+                    sx={{ borderRadius: 0, width: '100%' }}
+                    onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+                  >
+                    安全性設定
+                  </Button>
+                </CardActions>
+              )}
+              <Collapse
+                in={showAdvanceSetting}
+                timeout='auto'
+                easing={'ease'}
+                unmountOnExit
+                sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
+              >
+                <CardContent>
+                  <Stack direction={'row'} spacing={8} justifyContent={'center'}>
+                    <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
+                      重設密碼
+                    </Button>
+                    <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
+                      註銷此帳戶
+                    </Button>
+                  </Stack>
+                </CardContent>
+              </Collapse>
             </CardContent>
           </Card>
-          {pageModel === PageModel.Update && (
-            <CardActions disableSpacing sx={{ padding: 0 }}>
-              <Button
-                variant='contained'
-                color='error'
-                startIcon={<GppMaybeIcon />}
-                sx={{ borderRadius: 0, width: '100%' }}
-                onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
-              >
-                安全性設定
-              </Button>
-            </CardActions>
-          )}
-          <Collapse
-            in={showAdvanceSetting}
-            timeout='auto'
-            easing={'ease'}
-            unmountOnExit
-            sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
-          >
-            <CardContent>
-              <Stack direction={'row'} spacing={8} justifyContent={'center'}>
-                <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
-                  重設密碼
-                </Button>
-                <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
-                  註銷此帳戶
-                </Button>
-              </Stack>
-            </CardContent>
-          </Collapse>
           <WarningConfirmDialog />
         </>
       )}
@@ -455,4 +462,4 @@ const MemberInformation = () => {
   )
 }
 
-export default MemberInformation
+export default Member

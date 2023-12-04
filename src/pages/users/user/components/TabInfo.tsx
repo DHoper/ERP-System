@@ -7,12 +7,13 @@ import Button from '@mui/material/Button'
 import CardContent from '@mui/material/CardContent'
 
 import { DynamicFormComponent, DynamicFormType } from 'src/types/ComponentsTypes'
-import { UserDataType, UserInfoType, UserInfoValidationSchema } from 'src/types/UserTypes'
+import { UserIntersectionType, UserInfoType, UserInfoValidationSchema } from 'src/types/UserTypes'
 import DynamicForm from 'src/views/form/DynamicForm'
 import { Stack } from '@mui/system'
 import { requestUpdate } from 'src/api/user/user'
 import { useAuthContext } from 'src/context/Auth/AuthContext'
 import { useSnackbarContext } from 'src/context/SnackbarContext'
+import { useRouter } from 'next/router'
 
 const dynamicFormFields: DynamicFormType[] = [
   {
@@ -69,12 +70,13 @@ const dynamicFormFields: DynamicFormType[] = [
   }
 ]
 
-const TabInfo = ({ userData, pageModel }: { userData: UserDataType; pageModel: 'Admin' | 'User' }) => {
+const TabInfo = ({ userData, pageModel }: { userData: UserIntersectionType; pageModel: 'Admin' | 'User' }) => {
   // ** State
   const [formField, setFormField] = useState<DynamicFormType[]>()
   const [formData, setFormData] = useState({})
   const [id, setId] = useState<string>()
 
+  const router = useRouter()
   const useSnackbar = useSnackbarContext()
 
   const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
@@ -111,6 +113,7 @@ const TabInfo = ({ userData, pageModel }: { userData: UserDataType; pageModel: '
         await update(userUpdateData)
       }
       useSnackbar.showSnackbar('帳戶資料已更新成功', 5000)
+      router.reload()
     } catch (error) {
       console.error('執行 User requestUpdate 時發生錯誤:', error)
     }

@@ -1,4 +1,4 @@
-import { UserDataType } from 'src/types/UserTypes'
+import { UserIntersectionType } from 'src/types/UserTypes'
 import { authApiClient } from '../client'
 
 export const ApiConfig = {
@@ -8,7 +8,7 @@ export const ApiConfig = {
   checkEmail: (email: string) => `/accounts/check_email/${email}`
 }
 
-export async function requestCreate(formData: UserDataType) {
+export async function requestCreate(formData: UserIntersectionType) {
   try {
     await authApiClient.post(ApiConfig.base, formData)
   } catch (error) {
@@ -36,7 +36,7 @@ export async function requestGetAll() {
   }
 }
 
-export async function requestUpdate(id: string, formData: UserDataType | { password: string }) {
+export async function requestUpdate(id: string, formData: UserIntersectionType | { password: string }) {
   try {
     const response = await authApiClient.patch(ApiConfig.byID(id), formData)
 

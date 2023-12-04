@@ -33,7 +33,8 @@ export interface UserInfoType {
   [key: string]: string | number | Date | undefined | null
 }
 
-export type UserDataType = UserAccountType | UserSecurityType | UserInfoType
+export type UserIntersectionType = UserAccountType & UserSecurityType & UserInfoType
+export type UserUnionType = UserAccountType & UserSecurityType & UserInfoType
 
 export const UserAccountValidationSchema = Yup.object().shape({
   username: Yup.string().max(20, '帳戶名稱不可超過 20 個字符').required('請提供用戶名稱'),

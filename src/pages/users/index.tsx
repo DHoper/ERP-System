@@ -7,7 +7,7 @@ import EditIcon from '@mui/icons-material/Edit'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { requestGetAll } from 'src/api/user/user'
-import { UserDataType } from 'src/types/UserTypes'
+import { UserIntersectionType } from 'src/types/UserTypes'
 import { hexStringToBlobUrl } from 'src/utils/convert'
 
 const groupType = ['資訊部', '人資部', '工程部']
@@ -122,7 +122,7 @@ const columns: GridColDef[] = [
   }
 ]
 
-const UserTable = () => {
+const Users = () => {
   const [rows, setRows] = useState<GridValidRowModel[][]>()
   const [sortModel, setSortModel] = useState<GridSortModel>([
     {
@@ -137,7 +137,7 @@ const UserTable = () => {
         const responseData = await requestGetAll()
         if (!responseData) throw new Error('User requestGetAll 取回空值')
 
-        const rowsData: GridValidRowModel[][] = responseData.map((rowData: UserDataType) => {
+        const rowsData: GridValidRowModel[][] = responseData.map((rowData: UserIntersectionType) => {
           return {
             ...rowData
           }
@@ -168,4 +168,4 @@ const UserTable = () => {
   )
 }
 
-export default UserTable
+export default Users

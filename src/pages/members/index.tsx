@@ -117,7 +117,7 @@ const columns: GridColDef[] = [
   }
 ]
 
-const UserTable = () => {
+const Members = () => {
   const [rows, setRows] = useState()
   const [sortModel, setSortModel] = useState<GridSortModel>([
     {
@@ -175,4 +175,4 @@ const UserTable = () => {
   )
 }
 
-export default UserTable
+export default Members

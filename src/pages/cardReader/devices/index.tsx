@@ -103,7 +103,7 @@ const columns: GridColDef[] = [
   }
 ]
 
-const UserTable = () => {
+const Devices = () => {
   const [rows, setRows] = useState()
   const [sortModel, setSortModel] = useState<GridSortModel>([
     {
@@ -163,4 +163,4 @@ const UserTable = () => {
   )
 }
 
-export default UserTable
+export default Devices

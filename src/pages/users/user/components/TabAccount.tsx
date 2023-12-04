@@ -8,7 +8,7 @@ import GppMaybeIcon from '@mui/icons-material/GppMaybe'
 import DynamicForm from 'src/views/form/DynamicForm'
 import AvatarImage from 'src/views/form/fieldElements/AvatarImage'
 import { DynamicFormComponent, DynamicFormType } from 'src/types/ComponentsTypes'
-import { UserAccountType, UserAccountValidationSchema, UserDataType } from 'src/types/UserTypes'
+import { UserAccountType, UserAccountValidationSchema, UserIntersectionType } from 'src/types/UserTypes'
 import { useAuthContext } from 'src/context/Auth/AuthContext'
 import { hexStringToBlobUrl } from 'src/utils/convert'
 import { requestDelete, requestUpdate } from 'src/api/user/user'
@@ -71,7 +71,7 @@ const TabAccount = ({
   pageModel,
   disabled
 }: {
-  userData: UserDataType
+  userData: UserIntersectionType
   pageModel: 'Admin' | 'User'
   disabled: boolean
 }) => {
@@ -109,6 +109,7 @@ const TabAccount = ({
         await update(userUpdateData)
       }
       useSnackbar.showSnackbar('帳戶資料已更新成功', 5000)
+      router.reload()
     } catch (error) {
       console.error('執行 User requestUpdate 時發生錯誤:', error)
     }
@@ -209,7 +210,7 @@ const TabAccount = ({
                 />
               </Grid>
 
-              <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 2 }}>
+              <Grid item xs={12} sx={{ marginTop: 4.8, marginBottom: 8 }}>
                 <Stack direction={'row'}>
                   <Button variant='contained' disabled={disabled} sx={{ marginRight: 3.5 }} onClick={handleChildSubmit}>
                     保存
@@ -226,38 +227,38 @@ const TabAccount = ({
                 </Stack>
               </Grid>
             </Grid>
+            {pageModel === 'Admin' && (
+              <CardActions disableSpacing sx={{ padding: 0 }}>
+                <Button
+                  variant='contained'
+                  color='error'
+                  startIcon={<GppMaybeIcon />}
+                  sx={{ borderRadius: 0, width: '100%' }}
+                  onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
+                >
+                  安全性設定
+                </Button>
+              </CardActions>
+            )}
+            <Collapse
+              in={showAdvanceSetting}
+              timeout='auto'
+              easing={'ease'}
+              unmountOnExit
+              sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
+            >
+              <CardContent>
+                <Stack direction={'row'} spacing={8} justifyContent={'center'}>
+                  <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
+                    重設密碼
+                  </Button>
+                  <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
+                    註銷此帳戶
+                  </Button>
+                </Stack>
+              </CardContent>
+            </Collapse>
           </CardContent>
-          {pageModel === 'Admin' && (
-            <CardActions disableSpacing sx={{ padding: 0 }}>
-              <Button
-                variant='contained'
-                color='error'
-                startIcon={<GppMaybeIcon />}
-                sx={{ borderRadius: 0, width: '100%' }}
-                onClick={() => setShowAdvanceSetting(!showAdvanceSetting)}
-              >
-                安全性設定
-              </Button>
-            </CardActions>
-          )}
-          <Collapse
-            in={showAdvanceSetting}
-            timeout='auto'
-            easing={'ease'}
-            unmountOnExit
-            sx={{ border: `solid 2px ${theme.palette.error.light}`, color: 'white' }}
-          >
-            <CardContent>
-              <Stack direction={'row'} spacing={8} justifyContent={'center'}>
-                <Button type='button' variant='outlined' color='error' onClick={handlePasswordReset}>
-                  重設密碼
-                </Button>
-                <Button type='button' variant='contained' color='error' onClick={handleAccountDelete}>
-                  註銷此帳戶
-                </Button>
-              </Stack>
-            </CardContent>
-          </Collapse>
           <ConfirmDialog /> {/* TS Error */}
         </>
       )}
