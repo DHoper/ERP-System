@@ -8,31 +8,24 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import Link from 'next/link'
 
 import { useEffect, useState } from 'react'
-import { requestGetAll } from 'src/api/member/member'
+import { requestGetAll } from 'src/api/cardReader/device'
 import { hexStringToBlobUrl } from 'src/utils/convert'
 import DataTable from 'src/views/dataTable/dataTable'
+import { formattedDateTime } from 'src/utils/format'
 
-const roleLabel = ['家長', '學員', '顧客']
+const device_modeLabel = ['讀卡', '開卡']
 
 const columns: GridColDef[] = [
   {
-    field: 'member_id',
+    field: 'device_id',
     headerName: 'ID',
     headerAlign: 'center',
     align: 'center',
     sortable: false
   },
   {
-    field: 'head_portrait',
-    headerName: '',
-    headerAlign: 'center',
-    align: 'center',
-    sortable: false,
-    renderCell: params => <Avatar alt="Member's Avatar" sx={{ width: 48, height: 48 }} src={params.row.head_portrait} />
-  },
-  {
-    field: 'nickname',
-    headerName: '姓名',
+    field: 'device_name',
+    headerName: '名稱',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -40,8 +33,8 @@ const columns: GridColDef[] = [
     disableColumnMenu: true
   },
   {
-    field: 'account',
-    headerName: '帳號',
+    field: 'device_pos',
+    headerName: '裝置位置',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -49,55 +42,49 @@ const columns: GridColDef[] = [
     disableColumnMenu: true
   },
   {
-    field: 'role',
-    headerName: '身分別',
+    field: 'device_uid',
+    headerName: '識別碼',
+    flex: 1,
+    headerAlign: 'center',
+    align: 'center',
+    sortable: false,
+    disableColumnMenu: true
+  },
+  {
+    field: 'device_mode',
+    headerName: '類型',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
     sortable: false,
     disableColumnMenu: true,
-    renderCell: (params: GridRenderCellParams) => <Chip label={roleLabel[params.value]} variant='outlined' />
+    renderCell: params => <span>{device_modeLabel[params.row.device_mode]}</span>
   },
   {
-    field: 'phone',
-    headerName: '電話',
+    field: 'create_date',
+    headerName: '建立時間',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
     sortable: false,
-    disableColumnMenu: true
+    renderCell: params => {
+      const originalDateTime = params.value
+
+      return <span>{formattedDateTime(originalDateTime)}</span>
+    }
   },
   {
-    field: 'email',
-    headerName: '信箱',
+    field: 'update_time',
+    headerName: '最後更新時間',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
     sortable: false,
-    disableColumnMenu: true
-  },
-  {
-    field: 'isActive',
-    headerName: '狀態',
-    flex: 1,
-    headerAlign: 'center',
-    align: 'center',
-    sortable: false,
-    renderCell: params => (
-      <div style={{ display: 'flex', alignItems: 'center' }}>
-        <Chip
-          label={params.row.isActive ? '啟用' : '停用'}
-          variant='outlined'
-          icon={<CircleIcon sx={{ fontSize: 15 }} />}
-          color={params.row.isActive ? 'success' : 'error'}
-          sx={{
-            padding: 1,
-            fontWeight: 'bold',
-            lineHeight: 1
-          }}
-        />
-      </div>
-    )
+    renderCell: params => {
+      const originalDateTime = params.value
+
+      return <span>{formattedDateTime(originalDateTime)}</span>
+    }
   },
   {
     field: 'action',
@@ -107,7 +94,7 @@ const columns: GridColDef[] = [
     sortable: false,
     width: 120,
     renderCell: params => (
-      <Link passHref href={`/members/member/${params.row.member_id}`}>
+      <Link passHref href={`/cardReader/devices/device/${params.row.device_id}`}>
         <IconButton aria-label='edit'>
           <EditIcon color='info' />
         </IconButton>
@@ -116,11 +103,11 @@ const columns: GridColDef[] = [
   }
 ]
 
-const UserTable = () => {
+const Devices = () => {
   const [rows, setRows] = useState()
   const [sortModel, setSortModel] = useState<GridSortModel>([
     {
-      field: 'member_id',
+      field: 'device_id',
       sort: 'desc'
     }
   ])
@@ -128,7 +115,8 @@ const UserTable = () => {
   useEffect(() => {
     ;(async () => {
       const responseData = await requestGetAll()
-      // const responseData = aa  //fakeData
+      console.log(responseData)
+
       if (responseData) {
         for (const items of responseData) {
           if (items.head_portrait) {
@@ -148,25 +136,25 @@ const UserTable = () => {
             <CardHeader
               title={
                 <Typography variant='h5' fontWeight='bold'>
-                  會員管理
+                  卡片管理
                 </Typography>
               }
             />
 
             <Stack sx={{ paddingRight: 4 }}>
-              <Link passHref href={`/members/member/new`}>
+              <Link passHref href={`/cards/cardsManagement/card/new`}>
                 <Button variant='contained' startIcon={<PersonAddIcon />}>
-                  新增會員
+                  新增讀卡機裝置
                 </Button>
               </Link>
             </Stack>
           </Stack>
           <DataTable
-            tableName='會員管理'
+            tableName='讀卡機裝置管理'
             rows={rows}
             columns={columns}
             icon={GroupIcon}
-            getId={row => row.member_id}
+            getId={row => row.device_id}
             sortModel={sortModel}
           />
         </>
@@ -175,4 +163,4 @@ const UserTable = () => {
   )
 }
 
-export default UserTable
+export default Devices

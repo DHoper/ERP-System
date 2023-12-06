@@ -10,7 +10,8 @@ export interface UserAccountType {
   group_id?: number
   title?: string
   isActive: boolean
-  [key: string]: string | number | boolean | undefined | null
+  role: number[]
+  [key: string]: string | number | number[]| boolean | undefined | null
 }
 
 export interface UserSecurityType {

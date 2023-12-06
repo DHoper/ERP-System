@@ -27,27 +27,6 @@ const navigation = (): VerticalNavItemsType => {
       path: '/users'
     },
     {
-      sectionTitle: '帳戶操作'
-    },
-    {
-      title: 'Login',
-      icon: Login,
-      path: '/auth/login',
-      openInNewTab: true
-    },
-    {
-      title: 'Register',
-      icon: AccountPlusOutline,
-      path: '/auth/register',
-      openInNewTab: true
-    },
-    {
-      title: 'Error',
-      icon: AlertCircleOutline,
-      path: '/auth/error',
-      openInNewTab: true
-    },
-    {
       sectionTitle: '主控板'
     },
     {
@@ -58,9 +37,14 @@ const navigation = (): VerticalNavItemsType => {
     {
       title: '讀卡機管理',
       icon: PeopleIcon,
+      subList: [{ title: '裝置管理', path: '/cardReader/devices' }]
+    },
+    {
+      title: '卡片管理',
+      icon: PeopleIcon,
       subList: [
-        { title: '裝置管理', path: '/cardReader/devices' },
-        { title: '卡片管理', path: '/cardReader/cards' }
+        { title: '卡片管理', path: '/cards/cardsManagement' },
+        { title: '卡片群組設定', path: '/cards/cards' }
       ]
     },
     {
@@ -87,6 +71,24 @@ const navigation = (): VerticalNavItemsType => {
       icon: CubeOutline,
       title: 'Form Layouts',
       path: '/form-layouts'
+    },
+    {
+      title: 'Login',
+      icon: Login,
+      path: '/auth/login',
+      openInNewTab: true
+    },
+    {
+      title: 'Register',
+      icon: AccountPlusOutline,
+      path: '/auth/register',
+      openInNewTab: true
+    },
+    {
+      title: 'Error',
+      icon: AlertCircleOutline,
+      path: '/auth/error',
+      openInNewTab: true
     }
   ]
 }

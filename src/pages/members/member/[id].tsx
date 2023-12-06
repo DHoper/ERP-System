@@ -225,7 +225,6 @@ const Member = () => {
     }
 
     if (pageModel === PageModel.Update) {
-      // router.reload()
       router.reload()
       useSnackbar.showSnackbar('會員資料更新成功', 5000)
     } else {
@@ -239,7 +238,7 @@ const Member = () => {
     setAvatarHexString(hexString)
   }
 
-  // * 安全性操作
+  // 安全性操作
   const [showAdvanceSetting, setShowAdvanceSetting] = useState<boolean>(false)
   const [getConfirmation, WarningConfirmDialog] = useConfirm()
 

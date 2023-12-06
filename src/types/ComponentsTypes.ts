@@ -4,9 +4,11 @@ import { InputProps } from '@mui/material'
 interface BaseFieldProps {
   name: string
   fieldType: string
-  label: string | ReactJSXElement
+  label?: string | ReactJSXElement
+  disabled?: boolean
   sx?: object
   fullWidth: boolean
+  subFields?: DynamicFormType[]
   props?: {
     [key: string]: string
   }
@@ -14,7 +16,7 @@ interface BaseFieldProps {
 
 export type DynamicFormType =
   | ({
-      fieldType: 'date' | 'password' | 'divider'
+      fieldType: 'date' | 'password' | 'divider' | 'switch' | 'blankSpace'
     } & BaseFieldProps)
   | ({
       fieldType: 'text' | 'number' | 'tel' | 'email'
@@ -22,14 +24,20 @@ export type DynamicFormType =
     } & InputProps &
       BaseFieldProps)
   | ({
-      fieldType: 'select' | 'multipleSelect' | 'radioGroup'
+      fieldType: 'select' | 'multipleSelect' | 'radioGroup' | 'checkboxGroup'
       options?: { value: any; label: string }[]
+      optionSx?: object
     } & BaseFieldProps)
   | ({
       fieldType: 'checkbox' | 'button'
       startIcon?: React.ReactNode
-      color: string
-      action: () => void
+      optionSx?: object
+      color?: string
+      action?: () => void
+    } & BaseFieldProps)
+  | ({
+      fieldType: 'customizeField'
+      component: JSX.Element
     } & BaseFieldProps)
 
 export interface DynamicFormComponent {

@@ -161,10 +161,24 @@ const TabAccount = ({
   }
 
   useEffect(() => {
+    if (pageModel === 'Admin') {
+      dynamicFormFields.push({
+        name: 'role',
+        label: '權限',
+        fieldType: 'multipleSelect',
+        fullWidth: false,
+        options: [
+          { value: 0, label: '一般員工' },
+          { value: 1, label: '管理員' }
+        ]
+      })
+    }
     setFormField(dynamicFormFields)
+  }, [pageModel])
 
+  useEffect(() => {
     if (!('username' in userData)) return
-    const { account_id, username, nickname, email, isActive, group_id, title, head_portrait } =
+    const { account_id, username, nickname, email, isActive, group_id, title, role, head_portrait } =
       userData as UserAccountType //* TS ERROR
 
     setId(account_id)
@@ -183,9 +197,10 @@ const TabAccount = ({
       email: email || '',
       isActive: isActive || '',
       group_id: group_id || 0,
-      title: title || ''
+      title: title || '',
+      ...(pageModel === 'Admin' && { role: role || 0 })
     })
-  }, [userData])
+  }, [pageModel, userData])
 
   return (
     <>

@@ -28,7 +28,7 @@ import ArrowRightIcon from '@mui/icons-material/ArrowRight'
 
 // ** Utils
 import { handleURLQueries } from 'src/@core/layouts/utils'
-import { List } from '@mui/material'
+import { Collapse, List } from '@mui/material'
 
 interface Props {
   item: NavLink
@@ -140,67 +140,72 @@ const VerticalNavLink = ({ item, navVisible, toggleNavVisibility }: Props) => {
           )}
         </MenuNavLink>
       </Link>
-      {open && item.subList && (
-        <List>
-          {item.subList.map((subItem, index) => {
-            return (
-              <ListItem
-                key={index}
-                disablePadding
-                className='nav-link'
-                disabled={subItem.disabled || false}
-                sx={{ px: '0 !important' }}
-              >
-                <Link passHref href={subItem.path === undefined ? '/' : `${subItem.path}`}>
-                  <MenuNavLink
-                    component={'a'}
-                    className={isNavLinkActive(subItem.path) ? 'active' : ''}
-                    {...(subItem.openInNewTab ? { target: '_blank' } : null)}
-                    onClick={e => {
-                      if (subItem.path === undefined) {
-                        e.preventDefault()
-                        e.stopPropagation()
-                      }
-                      if (navVisible) {
-                        toggleNavVisibility()
-                      }
-                    }}
-                    sx={{
-                      pl: 7,
-                      ...(subItem.disabled ? { pointerEvents: 'none' } : { cursor: 'pointer' })
-                    }}
-                  >
-                    <ListItemIcon
+
+      {item.subList && (
+        <Collapse in={open}>
+          <List>
+            {item.subList.map((subItem, index) => {
+              return (
+                <ListItem
+                  key={index}
+                  disablePadding
+                  className='nav-link'
+                  disabled={subItem.disabled || false}
+                  sx={{ px: '0 !important' }}
+                >
+                  <Link passHref href={subItem.path === undefined ? '/' : `${subItem.path}`}>
+                    <MenuNavLink
+                      component={'a'}
+                      className={isNavLinkActive(subItem.path) ? 'active' : ''}
+                      {...(subItem.openInNewTab ? { target: '_blank' } : null)}
+                      onClick={e => {
+                        if (subItem.path === undefined) {
+                          e.preventDefault()
+                          e.stopPropagation()
+                        }
+                        if (navVisible) {
+                          toggleNavVisibility()
+                        }
+                      }}
                       sx={{
-                        mr: 2.5,
-                        color: 'text.primary',
-                        transition: 'margin .25s ease-in-out'
+                        pl: 7,
+                        ...(subItem.disabled ? { pointerEvents: 'none' } : { cursor: 'pointer' })
                       }}
                     >
-                      <ArrowRightIcon fontSize='small' />
-                    </ListItemIcon>
+                      <ListItemIcon
+                        sx={{
+                          mr: 2.5,
+                          color: 'text.primary',
+                          transition: 'margin .25s ease-in-out'
+                        }}
+                      >
+                        <ArrowRightIcon fontSize='small' />
+                      </ListItemIcon>
 
-                    <MenuItemTextMetaWrapper>
-                      <Typography {...(themeConfig.menuTextTruncate && { noWrap: true })}>{subItem.title}</Typography>
-                      {subItem.badgeContent ? (
-                        <Chip
-                          label={'subItem.badgeContent'}
-                          color={subItem.badgeColor || 'primary'}
-                          sx={{
-                            height: 20,
-                            fontWeight: 500,
-                            marginLeft: 1.25,
-                            '& .MuiChip-label': { px: 1.5, textTransform: 'capitalize' }
-                          }}
-                        />
-                      ) : null}
-                    </MenuItemTextMetaWrapper>
-                  </MenuNavLink>
-                </Link>
-              </ListItem>
-            )
-          })}
-        </List>
+                      <MenuItemTextMetaWrapper>
+                        <Typography sx={{ fontSize: '.75rem' }} {...(themeConfig.menuTextTruncate && { noWrap: true })}>
+                          {subItem.title}
+                        </Typography>
+                        {subItem.badgeContent ? (
+                          <Chip
+                            label={'subItem.badgeContent'}
+                            color={subItem.badgeColor || 'primary'}
+                            sx={{
+                              height: 20,
+                              fontWeight: 500,
+                              marginLeft: 1.25,
+                              '& .MuiChip-label': { px: 1.5, textTransform: 'capitalize' }
+                            }}
+                          />
+                        ) : null}
+                      </MenuItemTextMetaWrapper>
+                    </MenuNavLink>
+                  </Link>
+                </ListItem>
+              )
+            })}
+          </List>
+        </Collapse>
       )}
     </>
   )
