@@ -12,7 +12,6 @@ import LockOpenOutline from 'mdi-material-ui/LockOpenOutline'
 import InformationOutline from 'mdi-material-ui/InformationOutline'
 
 // ** Third Party Styles Imports
-import 'react-datepicker/dist/react-datepicker.css'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import { UserIntersectionType } from 'src/types/UserTypes'
@@ -159,7 +158,7 @@ const User = () => {
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     padding: '.4rem 1.5rem',
-                    backgroundColor: theme.palette.error.main
+                    backgroundColor: theme.palette.error.main  //* TS錯誤
                   }}
                 >
                   <Typography color={'white'} textAlign={{ xs: 'center', xl: 'start' }}>

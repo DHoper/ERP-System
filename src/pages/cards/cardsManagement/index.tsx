@@ -8,7 +8,7 @@ import PersonAddIcon from '@mui/icons-material/PersonAdd'
 import Link from 'next/link'
 
 import { useEffect, useState } from 'react'
-import { requestGetAll } from 'src/api/cardReader/device'
+import { requestGetAll } from 'src/api/card/card'
 import { hexStringToBlobUrl } from 'src/utils/convert'
 import DataTable from 'src/views/dataTable/dataTable'
 import { formattedDateTime } from 'src/utils/format'
@@ -17,15 +17,15 @@ const device_modeLabel = ['讀卡', '開卡']
 
 const columns: GridColDef[] = [
   {
-    field: 'device_id',
+    field: 'card_id',
     headerName: 'ID',
     headerAlign: 'center',
     align: 'center',
     sortable: false
   },
   {
-    field: 'device_name',
-    headerName: '名稱',
+    field: 'card_uid',
+    headerName: '卡片號碼',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -33,8 +33,8 @@ const columns: GridColDef[] = [
     disableColumnMenu: true
   },
   {
-    field: 'device_pos',
-    headerName: '裝置位置',
+    field: 'nickname',
+    headerName: '使用者',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -42,8 +42,8 @@ const columns: GridColDef[] = [
     disableColumnMenu: true
   },
   {
-    field: 'device_uid',
-    headerName: '識別碼',
+    field: 'card_active',
+    headerName: '卡片狀態',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -51,18 +51,8 @@ const columns: GridColDef[] = [
     disableColumnMenu: true
   },
   {
-    field: 'device_mode',
-    headerName: '類型',
-    flex: 1,
-    headerAlign: 'center',
-    align: 'center',
-    sortable: false,
-    disableColumnMenu: true,
-    renderCell: params => <span>{device_modeLabel[params.row.device_mode]}</span>
-  },
-  {
-    field: 'create_date',
-    headerName: '建立時間',
+    field: 'card_valid',
+    headerName: '卡片效期',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
@@ -74,18 +64,24 @@ const columns: GridColDef[] = [
     }
   },
   {
-    field: 'update_time',
-    headerName: '最後更新時間',
+    field: 'card_group_id',
+    headerName: '權限組別',
     flex: 1,
     headerAlign: 'center',
     align: 'center',
     sortable: false,
-    renderCell: params => {
-      const originalDateTime = params.value
-
-      return <span>{formattedDateTime(originalDateTime)}</span>
-    }
+    disableColumnMenu: true
   },
+  {
+    field: 'card_group_name',
+    headerName: '卡片狀態',
+    flex: 1,
+    headerAlign: 'center',
+    align: 'center',
+    sortable: false,
+    disableColumnMenu: true
+  },
+
   {
     field: 'action',
     headerName: '管理',
@@ -94,7 +90,7 @@ const columns: GridColDef[] = [
     sortable: false,
     width: 120,
     renderCell: params => (
-      <Link passHref href={`/cardReader/devices/device/${params.row.device_id}`}>
+      <Link passHref href={`/cards/cardManagement/card/${params.row.card_id}`}>
         <IconButton aria-label='edit'>
           <EditIcon color='info' />
         </IconButton>
@@ -107,7 +103,7 @@ const Devices = () => {
   const [rows, setRows] = useState()
   const [sortModel, setSortModel] = useState<GridSortModel>([
     {
-      field: 'device_id',
+      field: 'card_id',
       sort: 'desc'
     }
   ])
@@ -115,7 +111,6 @@ const Devices = () => {
   useEffect(() => {
     ;(async () => {
       const responseData = await requestGetAll()
-      console.log(responseData)
 
       if (responseData) {
         for (const items of responseData) {
@@ -154,7 +149,7 @@ const Devices = () => {
             rows={rows}
             columns={columns}
             icon={GroupIcon}
-            getId={row => row.device_id}
+            getId={row => row.card_id}
             sortModel={sortModel}
           />
         </>

@@ -165,7 +165,7 @@ const TabAccount = ({
       dynamicFormFields.push({
         name: 'role',
         label: '權限',
-        fieldType: 'multipleSelect',
+        fieldType: 'select',
         fullWidth: false,
         options: [
           { value: 0, label: '一般員工' },
@@ -221,7 +221,7 @@ const TabAccount = ({
                   formData={formData}
                   handleSubmitForm={handleSubmit}
                   validationSchema={UserAccountValidationSchema}
-                  disabled={disabled}
+                  disabledAll={disabled}
                 />
               </Grid>
 

@@ -13,7 +13,7 @@ export interface MemberDataType {
   address?: string | null
   title?: string | null
   gender?: number | null
-  birthDate?: string | null
+  birthDate?: Date | string | null
   intro?: string | null
   languages?: number | null
   line_token?: string | null
@@ -65,7 +65,7 @@ export const MemberValidationSchema = Yup.object().shape({
   address: Yup.string().nullable(),
   title: Yup.string().nullable(),
   gender: Yup.number().required('請提供性別'),
-  birthDate: Yup.string().nullable(),
+  birthDate: Yup.date().nullable(),
   intro: Yup.string().nullable(),
   languages: Yup.number().nullable(),
   line_token: Yup.string().nullable(),

@@ -182,6 +182,7 @@ const Member = () => {
   const { id } = Array.isArray(router.query) ? router.query[0] : router.query
   const pageModel = id && id === 'new' ? PageModel.Create : PageModel.Update
 
+  // * 表單配置
   const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
 
   const handleChildSubmit = () => {
@@ -196,13 +197,16 @@ const Member = () => {
 
   const handleSubmit = async (formData: MemberDataType) => {
     let birthDate
-    if (formData.birthDate) {
-      birthDate = new Date(formData.birthDate)
-      const year = birthDate.getFullYear()
-      const month = String(birthDate.getMonth() + 1).padStart(2, '0')
-      const day = String(birthDate.getDate()).padStart(2, '0')
 
-      birthDate = `${year}-${month}-${day}`
+    if (formData.birthDate) {
+
+      birthDate = new Date(formData.birthDate)
+
+      birthDate = birthDate.toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
     }
 
     const memberRepData: MemberDataType = {
@@ -224,7 +228,7 @@ const Member = () => {
       await requestUpdate(id, memberRepData)
     }
 
-    if (pageModel === PageModel.Update) {
+    if (pageModel === PageModel.Update) {  // * 被註解功能
       router.reload()
       useSnackbar.showSnackbar('會員資料更新成功', 5000)
     } else {
@@ -238,7 +242,7 @@ const Member = () => {
     setAvatarHexString(hexString)
   }
 
-  // 安全性操作
+  // * 安全性操作
   const [showAdvanceSetting, setShowAdvanceSetting] = useState<boolean>(false)
   const [getConfirmation, WarningConfirmDialog] = useConfirm()
 
@@ -312,8 +316,7 @@ const Member = () => {
       )
 
       setFormField(updatedDynamicFormFields)
-
-      // const responseData = aa[4]  // fakeData
+      
       if (!accountData) return
       const {
         head_portrait,
@@ -332,6 +335,17 @@ const Member = () => {
         isActive,
         role
       } = accountData
+
+      let convertedDate
+      if (birthDate) {
+        convertedDate = new Date(birthDate)
+        convertedDate.toLocaleDateString('zh-TW', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        })
+      }
+
       setFormData({
         head_portrait: head_portrait || '',
         account: account || '',
@@ -341,7 +355,7 @@ const Member = () => {
         address: address || '',
         title: title || '',
         gender: gender || 0,
-        birthDate: birthDate,
+        birthDate: convertedDate,
         intro: intro || '',
         languages: languages || 0,
         line_token: line_token || '',

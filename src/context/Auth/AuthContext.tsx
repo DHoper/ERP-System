@@ -6,22 +6,6 @@ import { getWithExpiry, setWithExpiry } from 'src/utils/utils'
 import { UserIntersectionType } from 'src/types/UserTypes'
 import { useRouter } from 'next/router'
 
-interface StateType {
-  accountId?: string | null
-  accountData?: UserIntersectionType | null
-  isInitialized?: boolean
-  isAuthenticated?: boolean
-}
-
-const accountId = typeof window !== 'undefined' ? localStorage.getItem('accountId') || null : null
-
-const initialState: StateType = {
-  accountId: accountId || null,
-  accountData: null,
-  isInitialized: true,
-  isAuthenticated: false
-}
-
 enum Action {
   LOGIN = 'LOGIN',
   TOKENLOGIN = 'TOKENLOGIN',
@@ -30,6 +14,13 @@ enum Action {
   REGISTER = 'REGISTER',
   UPDATE = 'UPDATE',
   CHECKPASSWORD = 'CHECKPASSWORD'
+}
+
+interface StateType {
+  accountId?: string | null
+  accountData?: UserIntersectionType | null
+  isInitialized?: boolean
+  isAuthenticated?: boolean
 }
 
 export type ActionType = {
@@ -82,10 +73,10 @@ const reducer: React.Reducer<StateType, ActionType> = (state, action) => {
 }
 
 export type AuthContextType = {
-  accountId: string | null | undefined
+  accountId: string | null
   accountData: UserIntersectionType | null
-  isInitialized?: boolean
-  isAuthenticated?: boolean
+  isInitialized: boolean
+  isAuthenticated: boolean
   method: string
   login: (accountId: string, password: string, remember: boolean) => Promise<void>
   tokenLogin: () => Promise<void>
@@ -120,6 +111,15 @@ const AuthContext = createContext<AuthContextType>({
     throw new Error('Function not implemented.')
   }
 })
+
+const accountId = typeof window !== 'undefined' ? localStorage.getItem('accountId') || null : null
+
+const initialState: StateType = {
+  accountId: accountId || null,
+  accountData: null,
+  isInitialized: false,
+  isAuthenticated: false
+}
 
 type AuthProviderProps = {
   children: ReactNode
@@ -270,13 +270,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   if (!state.isInitialized) return <MatxLoading />
 
-  return (
-    <AuthContext.Provider
-      value={{ ...state, method: 'JWT', login, tokenLogin, logout, register, update, checkPassword }}  //* TS 錯誤
-    >
-      {children}
-    </AuthContext.Provider>
-  )
+  const { accountId, accountData, isAuthenticated, isInitialized } = state
+
+  //* 疑問  為何 TS 會將 state 內值判定為可以undefined?
+
+  const contextValue: AuthContextType = {
+    accountId: accountId || null,
+    accountData: accountData || null,
+    isAuthenticated: isAuthenticated || false,
+    isInitialized: isInitialized || null,
+    method: 'JWT',
+    login,
+    tokenLogin,
+    logout,
+    register,
+    update,
+    checkPassword
+  }
+
+  return <AuthContext.Provider value={contextValue}>{children}</AuthContext.Provider>
 }
 
 export default AuthContext

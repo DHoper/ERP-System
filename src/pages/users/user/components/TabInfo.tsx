@@ -98,11 +98,12 @@ const TabInfo = ({ userData, pageModel }: { userData: UserIntersectionType; page
     let birthDate
     if (formData.birthDate) {
       birthDate = new Date(formData.birthDate)
-      const year = birthDate.getFullYear()
-      const month = String(birthDate.getMonth() + 1).padStart(2, '0')
-      const day = String(birthDate.getDate()).padStart(2, '0')
 
-      birthDate = `${year}-${month}-${day}`
+      birthDate = birthDate.toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
     }
     const userUpdateData: UserInfoType = { ...formData, birthDate }
 
@@ -125,9 +126,19 @@ const TabInfo = ({ userData, pageModel }: { userData: UserIntersectionType; page
 
     setId(account_id)
 
+    let convertedDate
+    if (birthDate) {
+      convertedDate = new Date(birthDate)
+      convertedDate.toLocaleDateString('zh-TW', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      })
+    }
+
     setFormData({
       intro: intro || '',
-      birthDate: birthDate || '',
+      birthDate: convertedDate || '',
       phone: phone || '',
       address: address || '',
       line_token: line_token || '',

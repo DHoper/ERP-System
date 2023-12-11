@@ -1,13 +1,13 @@
-import { DeviceDataType } from 'src/types/CardReaderTypes'
+import { CardType } from 'src/types/CardTypes'
 import { authApiClient } from '../client'
 
 export const ApiConfig = {
-  base: 'devices',
-  byID: (id: string) => `devices/${id}`,
-  checkName: (name: string) => `/devices/check_name/${name}`
+  base: '/cards',
+  byID: (id: string) => `/cards/${id}`,
+  checkUid: (card_uid: string) => `/cards/check_card_uid/${card_uid}`
 }
 
-export async function requestCreate(formData: DeviceDataType) {
+export async function requestCreate(formData: CardType) {
   try {
     await authApiClient.post(ApiConfig.base, formData)
   } catch (error) {
@@ -35,7 +35,7 @@ export async function requestGetAll() {
   }
 }
 
-export async function requestUpdate(id: string, formData: DeviceDataType | { password: string }) {
+export async function requestUpdate(id: string, formData: CardType | { password: string }) {
   try {
     const response = await authApiClient.patch(ApiConfig.byID(id), formData)
 
@@ -55,12 +55,12 @@ export async function requestDelete(id: string) {
   }
 }
 
-export async function requestCheckName(name: string) {
+export async function requestCheckUid(card_uid: string) {
   try {
-    const response = await authApiClient.get(ApiConfig.checkName(name))
+    const response = await authApiClient.get(ApiConfig.checkUid(card_uid))
 
     return response.data
   } catch (error) {
-    console.error('發送 requestCheckName 請求時發生錯誤:', error)
+    console.error('發送 requestCheckUid 請求時發生錯誤:', error)
   }
 }

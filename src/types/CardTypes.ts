@@ -1,15 +1,25 @@
-import { requestCheckName } from 'src/api/cardReader/device'
+import { requestCheckUid } from 'src/api/card/card'
 import * as Yup from 'yup'
 
 export interface DeviceDataType {
-  device_id?: string
-  device_name: string
-  device_pos?: string
-  device_uid: string
-  device_mode: number
-  create_date?: string
-  update_time?: string
-  [key: string]: string | number | undefined | null
+  card_id?: string
+  card_uid: string
+  account_id: string,
+  card_remark?: string,
+  card_active: number,
+  create_time:string,
+  update_time: string,
+  card_group_id: string,
+  card_upload: number,
+  // card_valid: 2024-12-01T15:00:00.000Z,
+  // nickname: string,
+  // card_access_id: null,
+  // device_id: null,
+  // device_sub_access: null,
+  // card_access_active: null,
+  // device_name: null,
+  // card_group_name: null
+  // [key: string]: string | number | undefined | null
 }
 
 export const CardValidationSchema = Yup.object().shape({

@@ -16,16 +16,6 @@ export async function requestCreate(formData: MemberDataType) {
   }
 }
 
-export async function requestGet(id: string) {
-  try {
-    const response = await authApiClient.get(ApiConfig.byID(id))
-
-    return response.data
-  } catch (error) {
-    console.error('發送 requestGet 請求時發生錯誤:', error)
-  }
-}
-
 export async function requestGetAll() {
   try {
     const response = await authApiClient.get(ApiConfig.base)
@@ -36,9 +26,21 @@ export async function requestGetAll() {
   }
 }
 
+export async function requestGet(id: string) {
+  try {
+    const response = await authApiClient.get(ApiConfig.byID(id))
+    console.log('get', response.data)
+    
+    return response.data
+  } catch (error) {
+    console.error('發送 requestGet 請求時發生錯誤:', error)
+  }
+}
+
 export async function requestUpdate(id: string, formData: MemberDataType | { password: string }) {
   try {
     const response = await authApiClient.patch(ApiConfig.byID(id), formData)
+    console.log('update', formData)
 
     return response.data
   } catch (error) {

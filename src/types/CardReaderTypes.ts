@@ -9,7 +9,7 @@ export interface DeviceDataType {
   device_mode: number
   create_date?: string
   update_time?: string
-  [key: string]: string | number | undefined | null
+  [key: string]: string | number | object | undefined | null
 }
 
 export const DeviceValidationSchema = Yup.object().shape({
