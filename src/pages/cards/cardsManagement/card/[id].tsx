@@ -31,7 +31,7 @@ import KeyboardBackspaceIcon from '@mui/icons-material/KeyboardBackspace'
 import GppMaybeIcon from '@mui/icons-material/GppMaybe'
 import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
 import CheckIcon from '@mui/icons-material/Check'
-import CreditCardIcon from '@mui/icons-material/CreditCard'
+import AddCardIcon from '@mui/icons-material/AddCard'
 
 import DynamicForm from 'src/views/form/DynamicForm'
 import { DynamicFormComponent, DynamicFormType } from 'src/types/ComponentsTypes'
@@ -206,15 +206,6 @@ const Device = () => {
   const [success, setSuccess] = useState(false)
   const timer = useRef<number>()
 
-  const buttonSx = {
-    ...(success && {
-      bgcolor: green[500],
-      '&:hover': {
-        bgcolor: green[700]
-      }
-    })
-  }
-
   const handleButtonClick = () => {
     if (!loading) {
       setSuccess(false)
@@ -361,41 +352,58 @@ const Device = () => {
               {activeStep === 1 && (
                 <Grid container spacing={0}>
                   <Grid item xs={12} sx={{ marginBottom: 8 }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        gap: 16,
+                        justifyContent: 'center',
+                        marginY: 8
+                      }}
+                    >
                       <Box sx={{ m: 1, position: 'relative' }}>
-                        <Fab aria-label='save' color='primary' sx={buttonSx} onClick={handleButtonClick}>
-                          {success ? <CheckIcon /> : <CreditCardIcon />}
-                        </Fab>
+                        <Box
+                          sx={{
+                            width: 200,
+                            height: 200,
+                            borderRadius: '99em',
+                            backgroundColor: success ? green[500] : theme.palette.primary.main,
+                            color: 'white',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            alignItems: 'center'
+                          }}
+                        >
+                          {success ? <CheckIcon sx={{ fontSize: 75 }} /> : <AddCardIcon sx={{ fontSize: 75 }} />}
+                        </Box>
+
                         {loading && (
                           <CircularProgress
-                            size={68}
+                            size={210}
                             sx={{
                               color: green[500],
                               position: 'absolute',
-                              top: -6,
-                              left: -6,
-                              zIndex: 1
+                              top: -5,
+                              left: -5,
+
+                              zIndex: 10
                             }}
                           />
                         )}
                       </Box>
                       <Box sx={{ m: 1, position: 'relative' }}>
-                        <Button variant='contained' sx={buttonSx} disabled={loading} onClick={handleButtonClick}>
+                        <Button
+                          variant='contained'
+                          sx={{
+                            fontSize: 16,
+                            bgcolor: success ? green[500] : null,
+                          }}
+                          disabled={loading}
+                          onClick={handleButtonClick}
+                        >
                           開始掃描卡片
                         </Button>
-                        {loading && (
-                          <CircularProgress
-                            size={24}
-                            sx={{
-                              color: green[500],
-                              position: 'absolute',
-                              top: '50%',
-                              left: '50%',
-                              marginTop: '-12px',
-                              marginLeft: '-12px'
-                            }}
-                          />
-                        )}
                       </Box>
                     </Box>
                   </Grid>
