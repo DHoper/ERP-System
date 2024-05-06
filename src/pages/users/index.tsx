@@ -152,12 +152,35 @@ const Users = () => {
     fetchUserData()
   }, [])
 
+  const fake_rows: any[] = [
+    {
+      account_id: 1,
+      avatar: 'avatar_url_1',
+      nickname: 'John Doe',
+      username: 'john_doe',
+      group_id: 1,
+      phone: '1234567890',
+      email: 'john@example.com',
+      isActive: true
+    },
+    {
+      account_id: 2,
+      avatar: 'avatar_url_2',
+      nickname: 'Jane Smith',
+      username: 'jane_smith',
+      group_id: 2,
+      phone: '0987654321',
+      email: 'jane@example.com',
+      isActive: false
+    },
+  ];
+
   return (
     <>
-      {rows && (
+      {/* rows */ fake_rows && (
         <DataTable
           tableName='用戶管理'
-          rows={rows}
+          rows={fake_rows}
           columns={columns}
           icon={ManageAccountsIcon}
           sortModel={sortModel}

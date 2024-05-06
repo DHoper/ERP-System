@@ -60,7 +60,7 @@ const ThemeComponent = (props: Props) => {
 
   useEffect(() => {
     if (!isLoginPage && !isRegisterPage && !accountId) {
-      router.push('/auth/login')
+      // router.push('/auth/login')
     } else if (!accountData) {
 
       ;(async () => await tokenLogin())()

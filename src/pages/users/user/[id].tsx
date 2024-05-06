@@ -63,7 +63,7 @@ const User = () => {
   const [value, setValue] = useState<string>('account')
   const [isNotVerify, setIsNotVerify] = useState<boolean>(false)
   const [reSendEmail, setReSendEmail] = useState<boolean>(false)
-  const [userData, setUserData] = useState<UserIntersectionType>()
+  // const [userData, setUserData] = useState<UserIntersectionType>()
 
   const handleChange = (event: SyntheticEvent, newValue: string) => {
     setValue(newValue)
@@ -72,26 +72,38 @@ const User = () => {
   const useAuth = useAuthContext()
   const { accountData } = useAuth
 
-  useEffect(() => {
-    if (!pageModel || !accountData) return
-    if (pageModel === 'Admin') {
-      ;(async () => {
-        try {
-          const responseData = await requestGet(id)
+  // useEffect(() => {
+  //   if (!pageModel || !accountData) return
+  //   if (pageModel === 'Admin') {
+  //     ; (async () => {
+  //       try {
+  //         const responseData = await requestGet(id)
 
-          if (!responseData) {
-            throw new Error('User requestGet 取得 undefined')
-          }
+  //         if (!responseData) {
+  //           throw new Error('User requestGet 取得 undefined')
+  //         }
 
-          setUserData(responseData)
-        } catch (error) {
-          console.error('執行 User requestGet 時發生錯誤:', error)
-        }
-      })()
-    } else if (pageModel === 'User') {
-      setUserData(accountData)
-    }
-  }, [accountData, id, pageModel])
+  //         setUserData(responseData)
+  //       } catch (error) {
+  //         console.error('執行 User requestGet 時發生錯誤:', error)
+  //       }
+  //     })()
+  //   } else if (pageModel === 'User') {
+  //     setUserData(accountData)
+  //   }
+  // }, [accountData, id, pageModel])
+
+  const userData = {
+    account_id: 1,
+    avatar: 'avatar_url_1',
+    nickname: 'John Doe',
+    username: 'john_doe',
+    group_id: 1,
+    phone: '1234567890',
+    email: 'john@example.com',
+    isActive: true
+  }
+
 
   return (
     <>
