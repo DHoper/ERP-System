@@ -16,11 +16,11 @@ import { VerticalNavItemsType } from 'src/@core/layouts/types'
 
 const navigation = (): VerticalNavItemsType => {
   return [
-    {
-      title: 'Dashboard',
-      icon: HomeOutline,
-      path: '/'
-    },
+    // {
+    //   title: '儀錶板',
+    //   icon: HomeOutline,
+    //   path: '/'
+    // },
     {
       title: '使用者管理',
       icon: AccountCogOutline,
@@ -48,48 +48,17 @@ const navigation = (): VerticalNavItemsType => {
       ]
     },
     {
-      title: 'Typography',
-      icon: FormatLetterCase,
-      path: '/typography'
-    },
-    {
-      title: 'Icons',
-      path: '/icons',
-      icon: GoogleCirclesExtended
-    },
-    {
-      title: 'Cards',
-      icon: CreditCardOutline,
-      path: '/cards'
-    },
-    {
-      title: 'Tables',
-      icon: Table,
-      path: '/tables'
-    },
-    {
-      icon: CubeOutline,
-      title: 'Form Layouts',
-      path: '/form-layouts'
-    },
-    {
-      title: 'Login',
+      title: '登陸',
       icon: Login,
       path: '/auth/login',
       openInNewTab: true
     },
     {
-      title: 'Register',
+      title: '註冊',
       icon: AccountPlusOutline,
       path: '/auth/register',
       openInNewTab: true
     },
-    {
-      title: 'Error',
-      icon: AlertCircleOutline,
-      path: '/auth/error',
-      openInNewTab: true
-    }
   ]
 }
 

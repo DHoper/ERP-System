@@ -16,6 +16,7 @@ import { requestCheckAccountName, requestCreate, requestDelete, requestGet, requ
 import { MemberDataType, MemberValidationSchema } from 'src/types/MemberTypes'
 import useConfirm from 'src/views/message/WarningConfirmDialog'
 import { useSnackbarContext } from 'src/context/SnackbarContext'
+import { fakeMembersData } from '../fakeMembersData'
 
 const StyledButton = styled(Button)({
   backgroundColor: 'white',
@@ -179,7 +180,8 @@ const Member = () => {
   const router = useRouter()
   const theme = useTheme()
 
-  const { id } = Array.isArray(router.query) ? router.query[0] : router.query
+  // const { id } = Array.isArray(router.query) ? router.query[0] : router.query
+  const id = 2
   const pageModel = id && id === 'new' ? PageModel.Create : PageModel.Update
 
   // * 表單配置
@@ -199,7 +201,6 @@ const Member = () => {
     let birthDate
 
     if (formData.birthDate) {
-
       birthDate = new Date(formData.birthDate)
 
       birthDate = birthDate.toLocaleDateString('zh-TW', {
@@ -228,7 +229,8 @@ const Member = () => {
       await requestUpdate(id, memberRepData)
     }
 
-    if (pageModel === PageModel.Update) {  // * 被註解功能
+    if (pageModel === PageModel.Update) {
+      // * 被註解功能
       router.reload()
       useSnackbar.showSnackbar('會員資料更新成功', 5000)
     } else {
@@ -316,8 +318,27 @@ const Member = () => {
       )
 
       setFormField(updatedDynamicFormFields)
-      
-      if (!accountData) return
+
+      // if (!accountData) return
+      // const {
+      //   head_portrait,
+      //   account,
+      //   nickname,
+      //   email,
+      //   phone,
+      //   address,
+      //   title,
+      //   gender,
+      //   birthDate,
+      //   intro,
+      //   languages,
+      //   line_token,
+      //   member_group_id,
+      //   isActive,
+      //   role
+      // } = accountData
+
+      // 假資料
       const {
         head_portrait,
         account,
@@ -334,7 +355,7 @@ const Member = () => {
         member_group_id,
         isActive,
         role
-      } = accountData
+      } = fakeMembersData[0]
 
       let convertedDate
       if (birthDate) {

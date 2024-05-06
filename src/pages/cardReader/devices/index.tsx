@@ -12,6 +12,7 @@ import { requestGetAll } from 'src/api/cardReader/device'
 import { hexStringToBlobUrl } from 'src/utils/convert'
 import DataTable from 'src/views/dataTable/dataTable'
 import { formattedDateTime } from 'src/utils/format'
+import { fakeDeviceData } from '../fakeDeviceData'
 
 const device_modeLabel = ['讀卡', '開卡']
 
@@ -126,6 +127,7 @@ const Devices = () => {
         setRows(responseData)
       }
     })()
+    setRows(fakeDeviceData)
   }, [])
 
   return (
