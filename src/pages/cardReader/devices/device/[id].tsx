@@ -24,6 +24,7 @@ import { requestCheckName, requestCreate, requestDelete, requestGet, requestUpda
 import { DeviceDataType, DeviceValidationSchema } from 'src/types/CardReaderTypes'
 import useConfirm from 'src/views/message/WarningConfirmDialog'
 import { useSnackbarContext } from 'src/context/SnackbarContext'
+import { fakeDeviceData } from '../../fakeDeviceData'
 
 const StyledButton = styled(Button)({
   backgroundColor: 'white',
@@ -87,7 +88,8 @@ const Device = () => {
   const router = useRouter()
   const theme = useTheme()
 
-  const { id } = Array.isArray(router.query) ? router.query[0] : router.query
+  // const { id } = Array.isArray(router.query) ? router.query[0] : router.
+  const id = 1
   const pageModel = id === 'new' ? PageModel.Create : PageModel.Update
 
   const dynamicFormRef = useRef<DynamicFormComponent | null>(null)
@@ -157,6 +159,7 @@ const Device = () => {
         setDeviceData(responseData)
       })()
     }
+    setDeviceData(fakeDeviceData[0])
   }, [id, pageModel])
 
   useEffect(() => {

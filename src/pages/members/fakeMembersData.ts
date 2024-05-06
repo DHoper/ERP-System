@@ -1,4 +1,4 @@
-export const aa = [
+export const fakeMembersData = [
   {
     member_id: 2,
     account: 'kevin',

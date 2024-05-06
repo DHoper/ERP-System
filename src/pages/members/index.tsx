@@ -11,7 +11,7 @@ import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { requestGetAll } from 'src/api/member/member'
 import { hexStringToBlobUrl } from 'src/utils/convert'
-import { aa } from './membersData'
+import { fakeMembersData } from './fakeMembersData'
 
 const roleLabel = ['家長', '學員', '顧客']
 
@@ -138,6 +138,9 @@ const Members = () => {
         setRows(responseData)
       }
     })()
+    
+    // 假資料
+    setRows(fakeMembersData)
   }, [])
 
   return (
